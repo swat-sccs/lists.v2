@@ -1,4 +1,6 @@
+"use client";
 import Image from "next/image";
+import { Avatar, AvatarGroup, AvatarIcon } from "@heroui/avatar";
 
 export default function Home() {
   return (
