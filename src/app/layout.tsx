@@ -2,7 +2,6 @@
 import type { Metadata } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
 import "./globals.css";
-import { HeroUIProvider } from "@heroui/react";
 import { Providers } from "./providers";
 
 
@@ -27,12 +26,13 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="en">
+    <html lang="en" suppressHydrationWarning>
       <body
         className={`${geistSans.variable} ${geistMono.variable} antialiased`}
       >
-               <Providers themeProps={{ attribute: "class", defaultTheme: "dark" }}>
-       {children}</Providers>
+        <Providers themeProps={{ attribute: "class", defaultTheme: "system" }}>
+          {children}
+        </Providers>
       </body>
     </html>
   );
