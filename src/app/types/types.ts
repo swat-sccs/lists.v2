@@ -56,3 +56,9 @@ export type UserSession = {
   user: { email: string, id: string, name: string, role: string };
 
 }
+
+export type UserData = {
+  counts: { owner: number; moderator: number; member: number; total: number };
+  mailingLists: MailmanMember[];
+  listsIDs: string[];
+};

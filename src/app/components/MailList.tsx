@@ -2,21 +2,50 @@
 "use client";
 import { Card, CardBody } from "@heroui/card";
 import { Image } from "@heroui/image";
-import { MailingList, MailmanMember } from "../types/types";
-import { Switch } from "@heroui/switch";
+import { MailingList, MailmanMember, UserData } from "../types/types";
 import { Button } from "@heroui/button";
 import { ScrollShadow } from "@heroui/scroll-shadow";
-
+import { Subscribe, Unsubscribe } from "../actions/subscribe";
+import { useState } from "react";
 // Define the types for the component's props
 type MailListProps = {
   mailingLists: MailingList[];
+  userData: UserData;
 };
 
 /**
  * A reusable MailList component.
  * @param {MailListProps} props - The props for the MailList.
  */
-export const MailList = ({ mailingLists }: MailListProps) => {
+export const MailList = ({ mailingLists, userData }: MailListProps) => {
+  const [loading, setLoading] = useState(false);
+
+  async function handleSubscribe(listId: string): Promise<void> {
+    setLoading(true);
+    const result = await Subscribe(listId);
+
+    if (result.status == "success") {
+      setLoading(false);
+      // Optionally, refresh the page or update state to reflect the new subscription
+      window.location.reload();
+    } else {
+      setLoading(false);
+      alert("Failed to subscribe to the mailing list. Please try again.");
+    }
+  }
+  async function handleUnsubscribe(listId: string): Promise<void> {
+    setLoading(true);
+    const result = await Unsubscribe(listId);
+
+    if (result.status == "success") {
+      setLoading(false);
+      // Optionally, refresh the page or update state to reflect the new subscription
+      window.location.reload();
+    } else {
+      setLoading(false);
+      alert("Failed to unsubscribe from the mailing list. Please try again.");
+    }
+  }
   return (
     <div className="flex flex-col gap-4 h-full">
       <ScrollShadow className="w-full h-full">
@@ -55,7 +84,24 @@ export const MailList = ({ mailingLists }: MailListProps) => {
                           <p className="text-sm">Recieve Emails</p>
                         </Switch>
                         */}
-                        <Button color="primary">Subscribe</Button>
+                        {}
+                        {userData.listsIDs.includes(list.list_id) ? (
+                          <Button
+                            color="secondary"
+                            isLoading={loading}
+                            onPress={() => handleUnsubscribe(list.list_id)}
+                          >
+                            Unsubscribe
+                          </Button>
+                        ) : (
+                          <Button
+                            color="primary"
+                            isLoading={loading}
+                            onPress={() => handleSubscribe(list.list_id)}
+                          >
+                            Subscribe
+                          </Button>
+                        )}
                       </div>
                     </div>
 

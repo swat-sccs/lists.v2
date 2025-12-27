@@ -1,11 +1,11 @@
 import { MailList } from "./components/MailList";
 import { MailListPagination } from "./components/MailListPagination";
 import { getMailLists, getUserLists } from "./actions/getMailLists";
-import { searchMailLists } from "./actions/searchMailLists";
+import { searchMailLists, getUserListIds } from "./actions/searchMailLists";
 import { Suspense } from "react";
 import { Spinner } from "@heroui/spinner";
 import Search from "./components/Search";
-import { MailingList, MailmanMember } from "./types/types";
+import { MailingList, MailmanMember, UserData } from "./types/types";
 
 type SearchParams = Promise<{
   page?: string;
@@ -33,12 +33,12 @@ async function fetchData({
   return mailingLists;
 }
 
-type userData = {
-  counts: { owner: number; moderator: number; member: number; total: number };
-  mailingLists: MailmanMember[];
-};
-async function loadUserData() {
-  const data: userData = await getUserLists();
+async function loadMailmanUserData() {
+  let data: any = await getUserLists();
+  const listIDs = await getUserListIds();
+
+  data["listsIDs"] = listIDs;
+
   return data;
 }
 
@@ -49,7 +49,7 @@ export default async function Home({
 }) {
   const { page, filter, search } = await searchParams;
   const currentPage = Number(page) || 1;
-  const userData: userData = await loadUserData();
+  const userData: UserData = await loadMailmanUserData();
   const mailingLists = await fetchData({ search, filter });
 
   const totalLists = mailingLists.totalSize || 0;
@@ -71,7 +71,10 @@ export default async function Home({
         }
       >
         <div className="h-[60vh] ">
-          <MailList mailingLists={mailingLists.mailingLists} />
+          <MailList
+            mailingLists={mailingLists.mailingLists}
+            userData={userData}
+          />
         </div>
       </Suspense>
       <MailListPagination currentPage={currentPage} totalPages={totalPages} />

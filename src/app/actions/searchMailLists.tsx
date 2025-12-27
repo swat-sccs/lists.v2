@@ -1,3 +1,5 @@
+"use server";
+
 import { prisma } from "@/app/lib/prisma";
 import { Prisma } from "@/generated/prisma/client";
 import { MailingList } from "@/app/types/types";
@@ -10,11 +12,17 @@ const ROLE_MEMBER = 1;
 const ROLE_OWNER = 2;
 
 // Get list_ids where user has a specific role
-async function getUserListIds(email: string, role?: number): Promise<string[]> {
+export async function getUserListIds(
+  email?: string,
+  role?: number
+): Promise<string[]> {
+  const session = await auth();
+  const userEmail = session?.user?.email;
+  console.log(role);
   const memberships = await prisma.member.findMany({
     where: {
-      address: { email },
-      ...(role !== undefined && { role }),
+      address: { email: email ? email : userEmail },
+      ...(role !== undefined ? { role } : { role: ROLE_MEMBER }),
     },
     select: { list_id: true },
   });
@@ -33,6 +41,7 @@ function mapToMailingList(row: {
   list_id: string | null;
   volume: number | null;
   description: string | null;
+  member_count?: number | bigint | null;
 }): MailingList {
   return {
     advertised: row.advertised ?? false,
@@ -41,7 +50,7 @@ function mapToMailingList(row: {
     list_id: row.list_id ?? "",
     list_name: row.list_name ?? "",
     mail_host: row.mail_host ?? "",
-    member_count: 0,
+    member_count: Number(row.member_count ?? 0),
     volume: row.volume ?? 0,
     description: row.description ?? "",
     self_link: "",
@@ -83,29 +92,33 @@ export async function searchMailLists(
     },
   });
 
-  // No search term - use Prisma query builder
+  // No search term - use raw SQL to include member_count
   if (!term || term.trim() === "") {
-    const whereClause: Prisma.mailinglistWhereInput = {
-      advertised: true,
-      ...(userListIds && { list_id: { in: userListIds } }),
-    };
+    const listIdFilter = userListIds
+      ? Prisma.sql`AND list_id = ANY(${userListIds}::text[])`
+      : Prisma.empty;
 
-    const [results] = await Promise.all([
-      prisma.mailinglist.findMany({
-        where: whereClause,
-        take: ITEMS_PER_PAGE,
-        orderBy: { list_name: "asc" },
-        select: {
-          list_name: true,
-          mail_host: true,
-          list_id: true,
-          display_name: true,
-          description: true,
-          advertised: true,
-          volume: true,
-        },
-      }),
-    ]);
+    const results = await prisma.$queryRaw<
+      Array<{
+        list_name: string | null;
+        mail_host: string | null;
+        list_id: string | null;
+        display_name: string | null;
+        description: string | null;
+        advertised: boolean | null;
+        volume: number | null;
+        member_count: bigint;
+      }>
+    >`
+      SELECT 
+        list_name, mail_host, list_id, display_name, description, advertised, volume,
+        (SELECT COUNT(*) FROM member WHERE member.list_id = mailinglist.list_id) as member_count
+      FROM mailinglist
+      WHERE advertised = true
+        ${listIdFilter}
+      ORDER BY list_name ASC
+      LIMIT ${ITEMS_PER_PAGE}
+    `;
 
     return {
       totalSize: totalCount,
@@ -150,9 +163,12 @@ export async function searchMailLists(
         description: string | null;
         advertised: boolean | null;
         volume: number | null;
+        member_count: bigint;
       }>
     >`
-      SELECT list_name, mail_host, list_id, display_name, description, advertised, volume
+      SELECT 
+        list_name, mail_host, list_id, display_name, description, advertised, volume,
+        (SELECT COUNT(*) FROM member WHERE member.list_id = mailinglist.list_id) as member_count
       FROM mailinglist
       WHERE advertised = true
         ${listIdFilter}
