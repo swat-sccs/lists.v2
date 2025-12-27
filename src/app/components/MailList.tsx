@@ -2,7 +2,7 @@
 "use client";
 import { Card, CardBody } from "@heroui/card";
 import { Image } from "@heroui/image";
-import { MailingList } from "../types/types";
+import { MailingList, MailmanMember } from "../types/types";
 import { Switch } from "@heroui/switch";
 import { Button } from "@heroui/button";
 import { ScrollShadow } from "@heroui/scroll-shadow";
@@ -43,20 +43,24 @@ export const MailList = ({ mailingLists }: MailListProps) => {
                         <h3 className="text-lg font-semibold">
                           {list.display_name}
                         </h3>
+
                         <span className="text-xs text-gray-500">
                           {list.member_count} members
                         </span>
                       </div>
+
                       <div className="flex flex-row gap-10">
+                        {/*
                         <Switch defaultSelected>
                           <p className="text-sm">Recieve Emails</p>
                         </Switch>
+                        */}
                         <Button color="primary">Subscribe</Button>
                       </div>
                     </div>
-                    <p className="text-orange-600 text-sm">
-                      {list.display_name}@{list.mail_host}
-                    </p>
+
+                    <p className="text-orange-600 text-sm">{list.list_id}</p>
+
                     <div>
                       <p className="text-sm text-gray-300 max-h-10 overflow-y-clip text-ellipsis line-clamp-2">
                         {list.description}

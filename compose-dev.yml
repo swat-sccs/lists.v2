@@ -10,7 +10,7 @@ services:
       - ./.env
     environment:
       NODE_ENV: development
-      DOMAIN: http://127.0.0.1:3000/
+      DOMAIN: http://localhost:3000/
       POSTGRES_DB: listsv2_db
       DATABASE_URL: postgresql://postgres:restpass@listsv2-db-dev:5432/listsv2_db
     depends_on:

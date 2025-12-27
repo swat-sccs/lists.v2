@@ -3,10 +3,19 @@
 import { Card, CardBody } from "@heroui/card";
 import { Avatar } from "@heroui/avatar";
 import { Breadcrumbs, BreadcrumbItem } from "@heroui/breadcrumbs";
+import { Button } from "@heroui/button";
+import InputIcon from "@mui/icons-material/Input";
+import { signIn, signOut, useSession } from "next-auth/react";
+import {
+  Dropdown,
+  DropdownTrigger,
+  DropdownMenu,
+  DropdownItem,
+} from "@heroui/dropdown";
 
 // Define the types for the component's props
 type HeaderProps = {
-  title: String;
+  title: string;
 };
 
 /**
@@ -14,6 +23,7 @@ type HeaderProps = {
  * @param {HeaderProps} props - The props for the Header.
  */
 export const Header = ({ title }: HeaderProps) => {
+  const { data: session, status } = useSession();
   return (
     <Card>
       <CardBody className="px-5">
@@ -32,16 +42,38 @@ export const Header = ({ title }: HeaderProps) => {
           </div>
 
           <div className="flex flex-col justify-center items-end">
-            <div className="flex flex-row gap-3 items-center">
-              <div className="flex flex-col items-end">
-                <h3 className="text-lg semibold">User Name</h3>
-                <h3 className="text-xs text-gray-300">Admin</h3>
+            {status === "authenticated" ? (
+              <div className="flex flex-row gap-3 items-center">
+                <div className="flex flex-col items-end">
+                  <h3 className="text-lg semibold">{session?.user.name}</h3>
+                  <h3 className="text-xs text-gray-300">
+                    {session.user.role?.toLowerCase() == "admin" ? "Admin" : ""}
+                  </h3>
+                </div>
+
+                <Dropdown>
+                  <DropdownTrigger>
+                    <Avatar size="md" name={session?.user.name || ""} />
+                  </DropdownTrigger>
+                  <DropdownMenu aria-label="Static Actions">
+                    <DropdownItem key="logout" onPress={() => signOut()}>
+                      Log Out
+                    </DropdownItem>
+                  </DropdownMenu>
+                </Dropdown>
               </div>
-              <Avatar
-                size="md"
-                src="https://i.pravatar.cc/150?u=a042581f4e29026704d"
-              />
-            </div>
+            ) : (
+              <>
+                <Button
+                  type="button"
+                  variant="flat"
+                  color="primary"
+                  onPress={() => signIn("keycloak")}
+                >
+                  <InputIcon /> Log In
+                </Button>
+              </>
+            )}
           </div>
         </div>
       </CardBody>

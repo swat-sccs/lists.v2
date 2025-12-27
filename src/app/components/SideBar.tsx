@@ -16,7 +16,7 @@ export const SideBar = () => {
   const [activeIndex, setActiveIndex] = useState(0);
 
   // Positions corresponding to top-34, top-52, top-72
-  const positions = ["8.5rem", "13rem", "18rem"];
+  const positions = ["8rem", "12.5rem", "17rem"];
 
   return (
     <Card className="min-h-full flex flex-col">
@@ -28,11 +28,11 @@ export const SideBar = () => {
 
         <div className="flex flex-row ">
           <Image
-            width={100}
+            width={80}
             alt="Lists Logo, an envelope with speed lines to the left of it."
             src="/logos/logo_main.png"
           ></Image>
-          <h1 className="text-2xl font-bold mt-2">Mailing Lists</h1>
+          <h1 className="text-xl font-bold mt-2">Mailing Lists</h1>
         </div>
 
         <div className="flex flex-col gap-10 mt-10">
@@ -48,7 +48,7 @@ export const SideBar = () => {
             </Link>
           </div>
           <div className="flex flex-row gap-4 items-center">
-            <GetAppIcon className="" fontSize="large" />
+            <AdminPanelSettingsIcon className="" fontSize="large" />
             <Link
               color="foreground"
               href="#"
@@ -59,7 +59,7 @@ export const SideBar = () => {
             </Link>
           </div>
           <div className="flex flex-row gap-4 items-center">
-            <AdminPanelSettingsIcon className="" fontSize="large" />
+            <GetAppIcon className="" fontSize="large" />
             <Link
               color="foreground"
               href="#"
