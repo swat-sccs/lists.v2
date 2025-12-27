@@ -1,10 +1,7 @@
 import { MailList } from "./components/MailList";
 import { MailListPagination } from "./components/MailListPagination";
-import {
-  getMailLists,
-  getMailListsByUser,
-  getUserLists,
-} from "./actions/getMailLists";
+import { getMailLists, getUserLists } from "./actions/getMailLists";
+import { searchMailLists } from "./actions/searchMailLists";
 import { Suspense } from "react";
 import { Spinner } from "@heroui/spinner";
 import Search from "./components/Search";
@@ -18,43 +15,22 @@ type SearchParams = Promise<{
 interface getMailingListsResponse {
   totalSize?: number;
   mailingLists: MailingList[];
+  totalPages: number;
   counts?: { owner: number; moderator: number; member: number; total: number };
 }
-
 const ITEMS_PER_PAGE = 10;
 
-async function MailListLoader({
-  page,
-  filter,
+async function fetchData({
   search,
+  filter,
 }: {
-  page: number;
-  filter?: string;
   search?: string;
+  filter?: string;
 }) {
   let mailingLists: getMailingListsResponse;
-  mailingLists = await getMailLists(page, search);
 
-  if (!filter || filter == "all") {
-    mailingLists = await getMailLists(page, search);
-  } else {
-    let userLists = await getMailListsByUser(filter, search);
-    if (userLists) {
-      mailingLists = userLists;
-    }
-  }
-
-  return <MailList mailingLists={mailingLists.mailingLists} />;
-}
-
-async function getTotalPages() {
-  const data = await getMailLists(1);
-  return Math.ceil(data.totalSize / ITEMS_PER_PAGE);
-}
-
-async function getTotalLists() {
-  const data = await getMailLists(1);
-  return data.totalSize;
+  mailingLists = await searchMailLists(search, filter);
+  return mailingLists;
 }
 
 type userData = {
@@ -73,9 +49,11 @@ export default async function Home({
 }) {
   const { page, filter, search } = await searchParams;
   const currentPage = Number(page) || 1;
-  const totalPages = await getTotalPages();
   const userData: userData = await loadUserData();
-  const totalLists = await getTotalLists();
+  const mailingLists = await fetchData({ search, filter });
+
+  const totalLists = mailingLists.totalSize || 0;
+  const totalPages = mailingLists.totalPages || 0;
 
   return (
     <div className="">
@@ -93,7 +71,7 @@ export default async function Home({
         }
       >
         <div className="h-[60vh] ">
-          <MailListLoader page={currentPage} filter={filter} search={search} />
+          <MailList mailingLists={mailingLists.mailingLists} />
         </div>
       </Suspense>
       <MailListPagination currentPage={currentPage} totalPages={totalPages} />

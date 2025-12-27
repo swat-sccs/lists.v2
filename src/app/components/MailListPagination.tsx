@@ -2,6 +2,7 @@
 "use client";
 import { Pagination } from "@heroui/pagination";
 import { useRouter, useSearchParams } from "next/navigation";
+import { useEffect } from "react";
 
 type MailListPaginationProps = {
   currentPage: number;
@@ -17,6 +18,7 @@ export const MailListPagination = ({
 
   const handlePageChange = (page: number) => {
     const params = new URLSearchParams(searchParams.toString());
+
     params.set("page", page.toString());
     router.push(`?${params.toString()}`);
   };

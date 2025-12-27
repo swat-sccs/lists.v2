@@ -59,7 +59,9 @@ export const MailList = ({ mailingLists }: MailListProps) => {
                       </div>
                     </div>
 
-                    <p className="text-orange-600 text-sm">{list.list_id}</p>
+                    <p className="text-orange-600 text-sm">
+                      {list.fqdn_listname}
+                    </p>
 
                     <div>
                       <p className="text-sm text-gray-300 max-h-10 overflow-y-clip text-ellipsis line-clamp-2">

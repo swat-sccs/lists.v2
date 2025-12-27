@@ -9,7 +9,7 @@ import { Button, ButtonGroup } from "@heroui/button";
 import { Tabs, Tab } from "@heroui/tabs";
 import { MailmanMember } from "../types/types";
 import { useSession } from "next-auth/react";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 
 type userData = {
@@ -33,10 +33,10 @@ export const Search = ({ userData, totalPageCount }: SearchProps) => {
   const [searchValue, setSearchValue] = useState("");
   const searchParams = useSearchParams();
   const router = useRouter();
+  const params = new URLSearchParams(searchParams.toString());
 
   const handleFilterChange = (filter: string) => {
     setSelected(filter);
-    const params = new URLSearchParams(searchParams.toString());
     params.set("filter", filter);
     params.set("page", "1"); // Reset to page 1 when filter changes
     router.push(`?${params.toString()}`);
@@ -44,7 +44,6 @@ export const Search = ({ userData, totalPageCount }: SearchProps) => {
 
   const handleSearchChange = (value: string) => {
     setSearchValue(value);
-    const params = new URLSearchParams(searchParams.toString());
     if (value) {
       params.set("search", value);
     } else {
@@ -53,6 +52,10 @@ export const Search = ({ userData, totalPageCount }: SearchProps) => {
     params.set("page", "1"); // Reset to page 1 when filter changes
     router.push(`?${params.toString()}`);
   };
+
+  useEffect(() => {
+    setSelected(params.get("filter") || "all");
+  }, [searchParams]);
 
   return (
     <Card className="m-5">

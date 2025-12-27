@@ -1,14 +1,14 @@
 import axios from "axios";
 import { MailingList, MailmanMember } from "@/app/types/types";
 import { auth } from "@/app/lib/auth";
-import { get } from "http";
+
 
 export async function getMailListsByUser(role: string) {
   const session = await auth();
 
   if (session) {
     let filtered_output: Array<MailingList> = [];
-    const api_link = process.env.MAILMAN_OLD_API + `lists/find` || ""; //Pagination if necessary
+    const api_link = process.env.MAILMAN_API + `lists/find` || ""; //Pagination if necessary
 
     let data = { subscriber: session.user.email, role: role };
     let totalSize = 0;
@@ -19,7 +19,7 @@ export async function getMailListsByUser(role: string) {
         timeout: 2000,
         auth: {
           username: process.env.MAILMAN_USER || "",
-          password: process.env.MAILMAN_OLD_PASS || "",
+          password: process.env.MAILMAN_PASS || "",
         },
       })
       .then((response) => {
@@ -42,8 +42,8 @@ export async function getMailListsByUser(role: string) {
 export async function getMailLists(page: number = 1, search?: string) {
   let filtered_output: Array<MailingList> = [];
   const api_link =
-    process.env.MAILMAN_OLD_API +
-      `lists?count=10&page=${page}&advertised=true` || ""; //Pagination if necessary
+    process.env.MAILMAN_API + `lists?count=10&page=${page}&advertised=true` ||
+    ""; //Pagination if necessary
 
   let data = {};
   let totalSize = 0;
@@ -54,7 +54,7 @@ export async function getMailLists(page: number = 1, search?: string) {
       timeout: 2000,
       auth: {
         username: process.env.MAILMAN_USER || "",
-        password: process.env.MAILMAN_OLD_PASS || "",
+        password: process.env.MAILMAN_PASS || "",
       },
     })
     .then((response) => {
@@ -91,7 +91,7 @@ export async function getUserLists() {
   }
 
   let filtered_output: Array<MailmanMember> = [];
-  const api_link = process.env.MAILMAN_OLD_API + `members/find` || ""; //Pagination if necessary
+  const api_link = process.env.MAILMAN_API + `members/find` || ""; //Pagination if necessary
   let data = { subscriber: session.user.email };
 
   let counts = { member: 0, owner: 0, moderator: 0, total: 0 };
@@ -102,7 +102,7 @@ export async function getUserLists() {
       timeout: 5000,
       auth: {
         username: process.env.MAILMAN_USER || "",
-        password: process.env.MAILMAN_OLD_PASS || "",
+        password: process.env.MAILMAN_PASS || "",
       },
     })
     .then((response) => {
@@ -141,7 +141,7 @@ export async function getUserListsWithRole(filter?: string) {
   }
 
   let filtered_output: Array<MailmanMember> = [];
-  const api_link = process.env.MAILMAN_OLD_API + `members/find` || ""; //Pagination if necessary
+  const api_link = process.env.MAILMAN_API + `members/find` || ""; //Pagination if necessary
   let data = { subscriber: session.user.email, role: "" };
   if (filter == "owner" || filter == "member") {
     data.role = filter;

@@ -9,6 +9,7 @@ import AdminPanelSettingsIcon from "@mui/icons-material/AdminPanelSettings";
 import { useState } from "react";
 import { Button } from "@heroui/button";
 import LogoutIcon from "@mui/icons-material/Logout";
+import { signOut } from "next-auth/react";
 
 // Define the types for the component's props
 
@@ -74,6 +75,7 @@ export const SideBar = () => {
           color="primary"
           variant="flat"
           className="px-6 py-3 items-center mt-auto mb-8"
+          onPress={() => signOut()}
         >
           <LogoutIcon fontSize="large" />
           Sign Out

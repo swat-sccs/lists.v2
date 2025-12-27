@@ -1,0 +1,922 @@
+generator client {
+  provider = "prisma-client"
+  output   = "../src/generated/prisma"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+model request {
+  id              Int          @id @default(dbgenerated("nextval('_request_id_seq'::regclass)"))
+  key             String?      @db.VarChar
+  request_type    Int?
+  data_hash       String?      @db.VarChar
+  mailing_list_id Int?
+  mailinglist     mailinglist? @relation(fields: [mailing_list_id], references: [id], onDelete: NoAction, onUpdate: NoAction)
+
+  @@index([mailing_list_id], map: "ix__request_mailing_list_id")
+  @@map("_request")
+}
+
+model acceptablealias {
+  id              Int         @id @default(autoincrement())
+  mailing_list_id Int
+  alias           String      @db.VarChar
+  mailinglist     mailinglist @relation(fields: [mailing_list_id], references: [id], onDelete: NoAction, onUpdate: NoAction)
+
+  @@index([alias], map: "ix_acceptablealias_alias")
+  @@index([mailing_list_id], map: "ix_acceptablealias_mailing_list_id")
+}
+
+/// This model has constraints using non-default deferring rules and requires additional setup for migrations. Visit https://pris.ly/d/constraint-deferring for more info.
+model account_emailaddress {
+  id                        Int                         @id @default(autoincrement())
+  email                     String                      @db.VarChar(254)
+  verified                  Boolean
+  primary                   Boolean
+  user_id                   Int
+  auth_user                 auth_user                   @relation(fields: [user_id], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "account_emailaddress_user_id_2c513194_fk_auth_user_id")
+  account_emailconfirmation account_emailconfirmation[]
+
+  @@unique([user_id, email], map: "account_emailaddress_user_id_email_987c8728_uniq")
+  @@index([email], map: "account_emailaddress_email_03be32b2")
+  @@index([email], map: "account_emailaddress_email_03be32b2_like")
+  @@index([user_id], map: "account_emailaddress_user_id_2c513194")
+}
+
+/// This model has constraints using non-default deferring rules and requires additional setup for migrations. Visit https://pris.ly/d/constraint-deferring for more info.
+model account_emailconfirmation {
+  id                   Int                  @id @default(autoincrement())
+  created              DateTime             @db.Timestamptz(6)
+  sent                 DateTime?            @db.Timestamptz(6)
+  key                  String               @unique @db.VarChar(64)
+  email_address_id     Int
+  account_emailaddress account_emailaddress @relation(fields: [email_address_id], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "account_emailconfirm_email_address_id_5b7f8c58_fk_account_e")
+
+  @@index([email_address_id], map: "account_emailconfirmation_email_address_id_5b7f8c58")
+  @@index([key], map: "account_emailconfirmation_key_f43612bd_like")
+}
+
+model address {
+  id                                      Int                  @id @default(autoincrement())
+  email                                   String?              @unique(map: "ix_address_email") @db.VarChar
+  original                                String?              @map("_original") @db.VarChar
+  display_name                            String?              @db.VarChar
+  verified_on                             DateTime?            @db.Timestamp(6)
+  registered_on                           DateTime?            @db.Timestamp(6)
+  user_id                                 Int?
+  preferences_id                          Int?
+  preferences                             preferences?         @relation(fields: [preferences_id], references: [id], onDelete: NoAction, onUpdate: NoAction)
+  user_address_user_idTouser              user?                @relation("address_user_idTouser", fields: [user_id], references: [id], onDelete: NoAction, onUpdate: NoAction)
+  autoresponserecord                      autoresponserecord[]
+  member                                  member[]
+  onelastdigest                           onelastdigest[]
+  user_user_preferred_address_idToaddress user[]               @relation("user_preferred_address_idToaddress")
+
+  @@index([preferences_id], map: "ix_address_preferences_id")
+  @@index([user_id], map: "ix_address_user_id")
+}
+
+model alembic_version {
+  version_num String @id(map: "alembic_version_pkc") @db.VarChar(32)
+}
+
+model auth_group {
+  id                     Int                      @id @default(autoincrement())
+  name                   String                   @unique @db.VarChar(150)
+  auth_group_permissions auth_group_permissions[]
+  auth_user_groups       auth_user_groups[]
+
+  @@index([name], map: "auth_group_name_a6ea08ec_like")
+}
+
+/// This model has constraints using non-default deferring rules and requires additional setup for migrations. Visit https://pris.ly/d/constraint-deferring for more info.
+model auth_group_permissions {
+  id              Int             @id @default(autoincrement())
+  group_id        Int
+  permission_id   Int
+  auth_permission auth_permission @relation(fields: [permission_id], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "auth_group_permissio_permission_id_84c5c92e_fk_auth_perm")
+  auth_group      auth_group      @relation(fields: [group_id], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "auth_group_permissions_group_id_b120cbf9_fk_auth_group_id")
+
+  @@unique([group_id, permission_id], map: "auth_group_permissions_group_id_permission_id_0cd325b0_uniq")
+  @@index([group_id], map: "auth_group_permissions_group_id_b120cbf9")
+  @@index([permission_id], map: "auth_group_permissions_permission_id_84c5c92e")
+}
+
+/// This model has constraints using non-default deferring rules and requires additional setup for migrations. Visit https://pris.ly/d/constraint-deferring for more info.
+model auth_permission {
+  id                         Int                          @id @default(autoincrement())
+  name                       String                       @db.VarChar(255)
+  content_type_id            Int
+  codename                   String                       @db.VarChar(100)
+  auth_group_permissions     auth_group_permissions[]
+  django_content_type        django_content_type          @relation(fields: [content_type_id], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "auth_permission_content_type_id_2f476e4b_fk_django_co")
+  auth_user_user_permissions auth_user_user_permissions[]
+
+  @@unique([content_type_id, codename], map: "auth_permission_content_type_id_codename_01ab375a_uniq")
+  @@index([content_type_id], map: "auth_permission_content_type_id_2f476e4b")
+}
+
+model auth_user {
+  id                                Int                                 @id @default(autoincrement())
+  password                          String                              @db.VarChar(128)
+  last_login                        DateTime?                           @db.Timestamptz(6)
+  is_superuser                      Boolean
+  username                          String                              @unique @db.VarChar(150)
+  first_name                        String                              @db.VarChar(150)
+  last_name                         String                              @db.VarChar(150)
+  email                             String                              @db.VarChar(254)
+  is_staff                          Boolean
+  is_active                         Boolean
+  date_joined                       DateTime                            @db.Timestamptz(6)
+  account_emailaddress              account_emailaddress[]
+  auth_user_groups                  auth_user_groups[]
+  auth_user_user_permissions        auth_user_user_permissions[]
+  django_admin_log                  django_admin_log[]
+  django_mailman3_profile           django_mailman3_profile?
+  hyperkitty_favorite               hyperkitty_favorite[]
+  hyperkitty_lastview               hyperkitty_lastview[]
+  hyperkitty_mailinglist_moderators hyperkitty_mailinglist_moderators[]
+  hyperkitty_mailinglist_owners     hyperkitty_mailinglist_owners[]
+  hyperkitty_profile                hyperkitty_profile?
+  hyperkitty_tagging                hyperkitty_tagging[]
+  hyperkitty_vote                   hyperkitty_vote[]
+  socialaccount_socialaccount       socialaccount_socialaccount[]
+
+  @@index([username], map: "auth_user_username_6821ab7c_like")
+}
+
+/// This model has constraints using non-default deferring rules and requires additional setup for migrations. Visit https://pris.ly/d/constraint-deferring for more info.
+model auth_user_groups {
+  id         Int        @id @default(autoincrement())
+  user_id    Int
+  group_id   Int
+  auth_group auth_group @relation(fields: [group_id], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "auth_user_groups_group_id_97559544_fk_auth_group_id")
+  auth_user  auth_user  @relation(fields: [user_id], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "auth_user_groups_user_id_6a12ed8b_fk_auth_user_id")
+
+  @@unique([user_id, group_id], map: "auth_user_groups_user_id_group_id_94350c0c_uniq")
+  @@index([group_id], map: "auth_user_groups_group_id_97559544")
+  @@index([user_id], map: "auth_user_groups_user_id_6a12ed8b")
+}
+
+/// This model has constraints using non-default deferring rules and requires additional setup for migrations. Visit https://pris.ly/d/constraint-deferring for more info.
+model auth_user_user_permissions {
+  id              Int             @id @default(autoincrement())
+  user_id         Int
+  permission_id   Int
+  auth_permission auth_permission @relation(fields: [permission_id], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "auth_user_user_permi_permission_id_1fbb5f2c_fk_auth_perm")
+  auth_user       auth_user       @relation(fields: [user_id], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "auth_user_user_permissions_user_id_a95ead1b_fk_auth_user_id")
+
+  @@unique([user_id, permission_id], map: "auth_user_user_permissions_user_id_permission_id_14a6b632_uniq")
+  @@index([permission_id], map: "auth_user_user_permissions_permission_id_1fbb5f2c")
+  @@index([user_id], map: "auth_user_user_permissions_user_id_a95ead1b")
+}
+
+model autoresponserecord {
+  id              Int          @id @default(autoincrement())
+  address_id      Int?
+  mailing_list_id Int?
+  response_type   Int?
+  date_sent       DateTime?    @db.Date
+  address         address?     @relation(fields: [address_id], references: [id], onDelete: NoAction, onUpdate: NoAction)
+  mailinglist     mailinglist? @relation(fields: [mailing_list_id], references: [id], onDelete: NoAction, onUpdate: NoAction)
+
+  @@index([address_id], map: "ix_autoresponserecord_address_id")
+  @@index([mailing_list_id], map: "ix_autoresponserecord_mailing_list_id")
+}
+
+model ban {
+  id      Int     @id @default(autoincrement())
+  email   String? @db.VarChar
+  list_id String? @db.VarChar
+
+  @@index([email], map: "ix_ban_email")
+  @@index([list_id], map: "ix_ban_list_id")
+}
+
+model bounceevent {
+  id         Int       @id @default(autoincrement())
+  list_id    String?   @db.VarChar
+  email      String?   @db.VarChar
+  timestamp  DateTime? @db.Timestamp(6)
+  message_id String?   @db.VarChar
+  context    Int?
+  processed  Boolean?
+}
+
+model contentfilter {
+  id              Int          @id @default(autoincrement())
+  mailing_list_id Int?
+  filter_type     Int?
+  filter_pattern  String?      @db.VarChar
+  mailinglist     mailinglist? @relation(fields: [mailing_list_id], references: [id], onDelete: NoAction, onUpdate: NoAction)
+
+  @@index([mailing_list_id], map: "ix_contentfilter_mailing_list_id")
+}
+
+/// This table contains check constraints and requires additional setup for migrations. Visit https://pris.ly/d/check-constraints for more info.
+/// This model has constraints using non-default deferring rules and requires additional setup for migrations. Visit https://pris.ly/d/constraint-deferring for more info.
+model django_admin_log {
+  id                  Int                  @id @default(autoincrement())
+  action_time         DateTime             @db.Timestamptz(6)
+  object_id           String?
+  object_repr         String               @db.VarChar(200)
+  action_flag         Int                  @db.SmallInt
+  change_message      String
+  content_type_id     Int?
+  user_id             Int
+  django_content_type django_content_type? @relation(fields: [content_type_id], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "django_admin_log_content_type_id_c4bce8eb_fk_django_co")
+  auth_user           auth_user            @relation(fields: [user_id], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "django_admin_log_user_id_c564eba6_fk_auth_user_id")
+
+  @@index([content_type_id], map: "django_admin_log_content_type_id_c4bce8eb")
+  @@index([user_id], map: "django_admin_log_user_id_c564eba6")
+}
+
+model django_content_type {
+  id               Int                @id @default(autoincrement())
+  app_label        String             @db.VarChar(100)
+  model            String             @db.VarChar(100)
+  auth_permission  auth_permission[]
+  django_admin_log django_admin_log[]
+
+  @@unique([app_label, model], map: "django_content_type_app_label_model_76bd3d3b_uniq")
+}
+
+/// This model has constraints using non-default deferring rules and requires additional setup for migrations. Visit https://pris.ly/d/constraint-deferring for more info.
+model django_mailman3_maildomain {
+  id          Int         @id @default(autoincrement())
+  mail_domain String      @unique @db.VarChar(255)
+  site_id     Int
+  django_site django_site @relation(fields: [site_id], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "django_mailman3_maildomain_site_id_54206c14_fk_django_site_id")
+
+  @@index([mail_domain], map: "django_mailman3_maildomain_mail_domain_302ad55f_like")
+  @@index([site_id], map: "django_mailman3_maildomain_site_id_54206c14")
+}
+
+/// This model has constraints using non-default deferring rules and requires additional setup for migrations. Visit https://pris.ly/d/constraint-deferring for more info.
+model django_mailman3_profile {
+  id        Int       @id @default(autoincrement())
+  timezone  String    @db.VarChar(100)
+  user_id   Int       @unique
+  auth_user auth_user @relation(fields: [user_id], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "django_mailman3_profile_user_id_1c010817_fk_auth_user_id")
+}
+
+model django_migrations {
+  id      Int      @id @default(autoincrement())
+  app     String   @db.VarChar(255)
+  name    String   @db.VarChar(255)
+  applied DateTime @db.Timestamptz(6)
+}
+
+model django_q_ormq {
+  id      Int       @id @default(autoincrement())
+  key     String    @db.VarChar(100)
+  payload String
+  lock    DateTime? @db.Timestamptz(6)
+}
+
+/// This table contains check constraints and requires additional setup for migrations. Visit https://pris.ly/d/check-constraints for more info.
+model django_q_schedule {
+  id                  Int       @id @default(autoincrement())
+  func                String    @db.VarChar(256)
+  hook                String?   @db.VarChar(256)
+  args                String?
+  kwargs              String?
+  schedule_type       String    @db.VarChar(2)
+  repeats             Int
+  next_run            DateTime? @db.Timestamptz(6)
+  task                String?   @db.VarChar(100)
+  name                String?   @db.VarChar(100)
+  minutes             Int?      @db.SmallInt
+  cron                String?   @db.VarChar(100)
+  cluster             String?   @db.VarChar(100)
+  intended_date_kwarg String?   @db.VarChar(100)
+}
+
+model django_q_task {
+  name          String   @db.VarChar(100)
+  func          String   @db.VarChar(256)
+  hook          String?  @db.VarChar(256)
+  args          String?
+  kwargs        String?
+  result        String?
+  started       DateTime @db.Timestamptz(6)
+  stopped       DateTime @db.Timestamptz(6)
+  success       Boolean
+  id            String   @id @db.VarChar(32)
+  group         String?  @db.VarChar(100)
+  attempt_count Int
+  cluster       String?  @db.VarChar(100)
+
+  @@index([id], map: "django_q_task_id_32882367_like")
+}
+
+model django_session {
+  session_key  String   @id @db.VarChar(40)
+  session_data String
+  expire_date  DateTime @db.Timestamptz(6)
+
+  @@index([expire_date], map: "django_session_expire_date_a5c62663")
+  @@index([session_key], map: "django_session_session_key_c0390e0f_like")
+}
+
+model django_site {
+  id                            Int                             @id @default(autoincrement())
+  domain                        String                          @unique(map: "django_site_domain_a2e37b91_uniq") @db.VarChar(100)
+  name                          String                          @db.VarChar(50)
+  django_mailman3_maildomain    django_mailman3_maildomain[]
+  socialaccount_socialapp_sites socialaccount_socialapp_sites[]
+
+  @@index([domain], map: "django_site_domain_a2e37b91_like")
+}
+
+model domain {
+  id           Int            @id @default(autoincrement())
+  mail_host    String?        @unique @db.VarChar
+  description  String?        @db.VarChar
+  alias_domain String?        @db.VarChar
+  base_url     String?        @db.VarChar
+  domain_owner domain_owner[]
+}
+
+model domain_owner {
+  user_id   Int
+  domain_id Int
+  domain    domain @relation(fields: [domain_id], references: [id], onDelete: NoAction, onUpdate: NoAction)
+  user      user   @relation(fields: [user_id], references: [id], onDelete: NoAction, onUpdate: NoAction)
+
+  @@id([user_id, domain_id])
+}
+
+model file_cache {
+  id         Int       @id @default(autoincrement())
+  key        String?   @db.VarChar
+  file_id    String?   @db.VarChar
+  is_bytes   Boolean?
+  created_on DateTime? @db.Timestamp(6)
+  expires_on DateTime? @db.Timestamp(6)
+}
+
+model headermatch {
+  id              Int         @id @default(autoincrement())
+  mailing_list_id Int
+  position        Int?
+  header          String?     @db.VarChar
+  pattern         String?     @db.VarChar
+  chain           String?     @db.VarChar
+  tag             String?     @db.VarChar
+  mailinglist     mailinglist @relation(fields: [mailing_list_id], references: [id], onDelete: NoAction, onUpdate: NoAction)
+
+  @@index([mailing_list_id], map: "ix_headermatch_mailing_list_id")
+  @@index([position], map: "ix_headermatch_position")
+}
+
+/// This model has constraints using non-default deferring rules and requires additional setup for migrations. Visit https://pris.ly/d/constraint-deferring for more info.
+model hyperkitty_attachment {
+  id               Int              @id @default(autoincrement())
+  counter          Int              @db.SmallInt
+  name             String           @db.VarChar(255)
+  content_type     String           @db.VarChar(255)
+  encoding         String?          @db.VarChar(255)
+  size             Int?
+  content          Bytes?
+  email_id         Int
+  hyperkitty_email hyperkitty_email @relation(fields: [email_id], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "hyperkitty_attachment_email_id_37b08338_fk_hyperkitty_email_id")
+
+  @@unique([email_id, counter], map: "hyperkitty_attachment_email_id_counter_fd863122_uniq")
+  @@index([email_id], map: "hyperkitty_attachment_email_id_37b08338")
+}
+
+/// This model has constraints using non-default deferring rules and requires additional setup for migrations. Visit https://pris.ly/d/constraint-deferring for more info.
+model hyperkitty_email {
+  id                                                                      Int                     @id @default(autoincrement())
+  message_id                                                              String                  @db.VarChar(255)
+  message_id_hash                                                         String                  @db.VarChar(255)
+  subject                                                                 String                  @db.VarChar(512)
+  content                                                                 String
+  date                                                                    DateTime                @db.Timestamptz(6)
+  timezone                                                                Int                     @db.SmallInt
+  in_reply_to                                                             String?                 @db.VarChar(255)
+  archived_date                                                           DateTime                @db.Timestamptz(6)
+  thread_depth                                                            Int
+  thread_order                                                            Int?
+  mailinglist_id                                                          Int
+  parent_id                                                               Int?
+  sender_id                                                               String                  @db.VarChar(255)
+  thread_id                                                               Int
+  sender_name                                                             String?                 @db.VarChar(255)
+  hyperkitty_attachment                                                   hyperkitty_attachment[]
+  hyperkitty_mailinglist                                                  hyperkitty_mailinglist  @relation(fields: [mailinglist_id], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "hyperkitty_email_mailinglist_id_2c2b6f03_fk_hyperkitt")
+  hyperkitty_sender                                                       hyperkitty_sender       @relation(fields: [sender_id], references: [address], onDelete: NoAction, onUpdate: NoAction, map: "hyperkitty_email_sender_id_218742c7_fk_hyperkitt")
+  hyperkitty_thread_hyperkitty_email_thread_idTohyperkitty_thread         hyperkitty_thread       @relation("hyperkitty_email_thread_idTohyperkitty_thread", fields: [thread_id], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "hyperkitty_email_thread_id_038c9aee_fk_hyperkitty_thread_id")
+  hyperkitty_thread_hyperkitty_thread_starting_email_idTohyperkitty_email hyperkitty_thread?      @relation("hyperkitty_thread_starting_email_idTohyperkitty_email")
+  hyperkitty_vote                                                         hyperkitty_vote[]
+
+  @@unique([mailinglist_id, message_id], map: "hyperkitty_email_mailinglist_id_message_id_355216d0_uniq")
+  @@index([archived_date], map: "hyperkitty_email_archived_date_2cfdd7a1")
+  @@index([date], map: "hyperkitty_email_date_5a028303")
+  @@index([in_reply_to], map: "hyperkitty_email_in_reply_to_19db9b71")
+  @@index([in_reply_to], map: "hyperkitty_email_in_reply_to_19db9b71_like")
+  @@index([mailinglist_id], map: "hyperkitty_email_mailinglist_id_2c2b6f03")
+  @@index([message_id], map: "hyperkitty_email_message_id_584fd58b")
+  @@index([message_id], map: "hyperkitty_email_message_id_584fd58b_like")
+  @@index([message_id_hash], map: "hyperkitty_email_message_id_hash_8a4a6406")
+  @@index([message_id_hash], map: "hyperkitty_email_message_id_hash_8a4a6406_like")
+  @@index([parent_id], map: "hyperkitty_email_parent_id_c0b40ef8")
+  @@index([sender_id], map: "hyperkitty_email_sender_id_218742c7")
+  @@index([sender_id], map: "hyperkitty_email_sender_id_218742c7_like")
+  @@index([subject], map: "hyperkitty_email_subject_7ae9de90")
+  @@index([subject], map: "hyperkitty_email_subject_7ae9de90_like")
+  @@index([thread_id], map: "hyperkitty_email_thread_id_038c9aee")
+  @@index([thread_order], map: "hyperkitty_email_thread_order_610e7931")
+}
+
+/// This model has constraints using non-default deferring rules and requires additional setup for migrations. Visit https://pris.ly/d/constraint-deferring for more info.
+model hyperkitty_favorite {
+  id                Int               @id @default(autoincrement())
+  thread_id         Int
+  user_id           Int
+  hyperkitty_thread hyperkitty_thread @relation(fields: [thread_id], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "hyperkitty_favorite_thread_id_312a9c52_fk_hyperkitty_thread_id")
+  auth_user         auth_user         @relation(fields: [user_id], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "hyperkitty_favorite_user_id_ae8c1115_fk_auth_user_id")
+
+  @@index([thread_id], map: "hyperkitty_favorite_thread_id_312a9c52")
+  @@index([user_id], map: "hyperkitty_favorite_user_id_ae8c1115")
+}
+
+/// This model has constraints using non-default deferring rules and requires additional setup for migrations. Visit https://pris.ly/d/constraint-deferring for more info.
+model hyperkitty_lastview {
+  id                Int               @id @default(autoincrement())
+  view_date         DateTime          @db.Timestamptz(6)
+  thread_id         Int
+  user_id           Int
+  hyperkitty_thread hyperkitty_thread @relation(fields: [thread_id], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "hyperkitty_lastview_thread_id_5bd4f0ad_fk_hyperkitty_thread_id")
+  auth_user         auth_user         @relation(fields: [user_id], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "hyperkitty_lastview_user_id_5586ea1f_fk_auth_user_id")
+
+  @@index([thread_id], map: "hyperkitty_lastview_thread_id_5bd4f0ad")
+  @@index([user_id], map: "hyperkitty_lastview_user_id_5586ea1f")
+}
+
+model hyperkitty_mailinglist {
+  id                                Int                                 @id(map: "hyperkitty_mailinglist_pkey1") @default(autoincrement())
+  name                              String                              @unique @db.VarChar(254)
+  display_name                      String                              @db.VarChar(255)
+  description                       String?
+  subject_prefix                    String                              @db.VarChar(255)
+  archive_policy                    Int
+  created_at                        DateTime                            @db.Timestamptz(6)
+  list_id                           String?                             @unique(map: "hyperkitty_mailinglist_list_id_key1") @db.VarChar(254)
+  archive_rendering_mode            String?                             @db.VarChar(255)
+  hyperkitty_email                  hyperkitty_email[]
+  hyperkitty_mailinglist_moderators hyperkitty_mailinglist_moderators[]
+  hyperkitty_mailinglist_owners     hyperkitty_mailinglist_owners[]
+  hyperkitty_thread                 hyperkitty_thread[]
+
+  @@index([list_id], map: "hyperkitty_mailinglist_list_id_abf92a02_like")
+  @@index([name], map: "hyperkitty_mailinglist_name_3cb1f0ae_like")
+}
+
+/// This model has constraints using non-default deferring rules and requires additional setup for migrations. Visit https://pris.ly/d/constraint-deferring for more info.
+model hyperkitty_mailinglist_moderators {
+  id                     Int                    @id @default(autoincrement())
+  mailinglist_id         Int
+  user_id                Int
+  hyperkitty_mailinglist hyperkitty_mailinglist @relation(fields: [mailinglist_id], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "hyperkitty_mailingli_mailinglist_id_e58fb301_fk_hyperkitt")
+  auth_user              auth_user              @relation(fields: [user_id], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "hyperkitty_mailingli_user_id_f7d14f18_fk_auth_user")
+
+  @@unique([mailinglist_id, user_id], map: "hyperkitty_mailinglist_m_mailinglist_id_user_id_f08637ac_uniq")
+  @@index([mailinglist_id], map: "hyperkitty_mailinglist_moderators_mailinglist_id_e58fb301")
+  @@index([user_id], map: "hyperkitty_mailinglist_moderators_user_id_f7d14f18")
+}
+
+/// This model has constraints using non-default deferring rules and requires additional setup for migrations. Visit https://pris.ly/d/constraint-deferring for more info.
+model hyperkitty_mailinglist_owners {
+  id                     Int                    @id @default(autoincrement())
+  mailinglist_id         Int
+  user_id                Int
+  hyperkitty_mailinglist hyperkitty_mailinglist @relation(fields: [mailinglist_id], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "hyperkitty_mailingli_mailinglist_id_a47e04ec_fk_hyperkitt")
+  auth_user              auth_user              @relation(fields: [user_id], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "hyperkitty_mailinglist_owners_user_id_1404d888_fk_auth_user_id")
+
+  @@unique([mailinglist_id, user_id], map: "hyperkitty_mailinglist_o_mailinglist_id_user_id_c977af32_uniq")
+  @@index([mailinglist_id], map: "hyperkitty_mailinglist_owners_mailinglist_id_a47e04ec")
+  @@index([user_id], map: "hyperkitty_mailinglist_owners_user_id_1404d888")
+}
+
+/// This model has constraints using non-default deferring rules and requires additional setup for migrations. Visit https://pris.ly/d/constraint-deferring for more info.
+model hyperkitty_profile {
+  id        Int       @id @default(autoincrement())
+  karma     Int
+  user_id   Int       @unique
+  auth_user auth_user @relation(fields: [user_id], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "hyperkitty_profile_user_id_173b131c_fk_auth_user_id")
+}
+
+model hyperkitty_sender {
+  address          String             @id @db.VarChar(255)
+  mailman_id       String?            @db.VarChar(255)
+  hyperkitty_email hyperkitty_email[]
+
+  @@index([address], map: "hyperkitty_sender_address_ac76f0b6_like")
+  @@index([mailman_id], map: "hyperkitty_sender_mailman_id_beeb6ae1")
+  @@index([mailman_id], map: "hyperkitty_sender_mailman_id_beeb6ae1_like")
+}
+
+model hyperkitty_tag {
+  id                 Int                  @id @default(autoincrement())
+  name               String               @unique @db.VarChar(255)
+  hyperkitty_tagging hyperkitty_tagging[]
+
+  @@index([name], map: "hyperkitty_tag_name_8493e4fe_like")
+}
+
+/// This model has constraints using non-default deferring rules and requires additional setup for migrations. Visit https://pris.ly/d/constraint-deferring for more info.
+model hyperkitty_tagging {
+  id                Int               @id @default(autoincrement())
+  tag_id            Int
+  thread_id         Int
+  user_id           Int
+  hyperkitty_tag    hyperkitty_tag    @relation(fields: [tag_id], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "hyperkitty_tagging_tag_id_e26757dd_fk_hyperkitty_tag_id")
+  hyperkitty_thread hyperkitty_thread @relation(fields: [thread_id], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "hyperkitty_tagging_thread_id_ab30508b_fk_hyperkitty_thread_id")
+  auth_user         auth_user         @relation(fields: [user_id], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "hyperkitty_tagging_user_id_9af832e2_fk_auth_user_id")
+
+  @@index([tag_id], map: "hyperkitty_tagging_tag_id_e26757dd")
+  @@index([thread_id], map: "hyperkitty_tagging_thread_id_ab30508b")
+  @@index([user_id], map: "hyperkitty_tagging_user_id_9af832e2")
+}
+
+/// This model has constraints using non-default deferring rules and requires additional setup for migrations. Visit https://pris.ly/d/constraint-deferring for more info.
+model hyperkitty_thread {
+  id                                                                     Int                        @id @default(autoincrement())
+  thread_id                                                              String                     @db.VarChar(255)
+  date_active                                                            DateTime                   @db.Timestamptz(6)
+  category_id                                                            Int?
+  mailinglist_id                                                         Int
+  starting_email_id                                                      Int?                       @unique
+  hyperkitty_email_hyperkitty_email_thread_idTohyperkitty_thread         hyperkitty_email[]         @relation("hyperkitty_email_thread_idTohyperkitty_thread")
+  hyperkitty_favorite                                                    hyperkitty_favorite[]
+  hyperkitty_lastview                                                    hyperkitty_lastview[]
+  hyperkitty_tagging                                                     hyperkitty_tagging[]
+  hyperkitty_threadcategory                                              hyperkitty_threadcategory? @relation(fields: [category_id], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "hyperkitty_thread_category_id_0d7a8102_fk_hyperkitt")
+  hyperkitty_mailinglist                                                 hyperkitty_mailinglist     @relation(fields: [mailinglist_id], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "hyperkitty_thread_mailinglist_id_ff80772b_fk_hyperkitt")
+  hyperkitty_email_hyperkitty_thread_starting_email_idTohyperkitty_email hyperkitty_email?          @relation("hyperkitty_thread_starting_email_idTohyperkitty_email", fields: [starting_email_id], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "hyperkitty_thread_starting_email_id_fa7c55f5_fk_hyperkitt")
+
+  @@unique([mailinglist_id, thread_id], map: "hyperkitty_thread_mailinglist_id_thread_id_d832e465_uniq")
+  @@index([category_id], map: "hyperkitty_thread_category_id_0d7a8102")
+  @@index([date_active], map: "hyperkitty_thread_date_active_34994eb8")
+  @@index([mailinglist_id], map: "hyperkitty_thread_mailinglist_id_ff80772b")
+  @@index([thread_id], map: "hyperkitty_thread_thread_id_1eb0910a")
+  @@index([thread_id], map: "hyperkitty_thread_thread_id_1eb0910a_like")
+}
+
+model hyperkitty_threadcategory {
+  id                Int                 @id @default(autoincrement())
+  name              String              @unique @db.VarChar(255)
+  color             String              @db.VarChar(7)
+  hyperkitty_thread hyperkitty_thread[]
+
+  @@index([name], map: "hyperkitty_threadcategory_name_27be48df_like")
+}
+
+/// This model has constraints using non-default deferring rules and requires additional setup for migrations. Visit https://pris.ly/d/constraint-deferring for more info.
+model hyperkitty_vote {
+  id               Int              @id @default(autoincrement())
+  value            Int              @db.SmallInt
+  email_id         Int
+  user_id          Int
+  hyperkitty_email hyperkitty_email @relation(fields: [email_id], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "hyperkitty_vote_email_id_73a50f4d_fk_hyperkitty_email_id")
+  auth_user        auth_user        @relation(fields: [user_id], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "hyperkitty_vote_user_id_30d9d03b_fk_auth_user_id")
+
+  @@unique([email_id, user_id], map: "hyperkitty_vote_email_id_user_id_61fb1880_uniq")
+  @@index([email_id], map: "hyperkitty_vote_email_id_73a50f4d")
+  @@index([user_id], map: "hyperkitty_vote_user_id_30d9d03b")
+  @@index([value], map: "hyperkitty_vote_value_8b62f468")
+}
+
+model listarchiver {
+  id              Int         @id @default(autoincrement())
+  mailing_list_id Int
+  name            String      @db.VarChar
+  is_enabled      Boolean?    @map("_is_enabled")
+  mailinglist     mailinglist @relation(fields: [mailing_list_id], references: [id], onDelete: NoAction, onUpdate: NoAction)
+
+  @@index([mailing_list_id], map: "ix_listarchiver_mailing_list_id")
+}
+
+model mailinglist {
+  id                                        Int                      @id @default(autoincrement())
+  list_name                                 String?                  @db.VarChar
+  mail_host                                 String?                  @db.VarChar
+  list_id                                   String?                  @unique(map: "ix_mailinglist_list_id") @db.VarChar
+  allow_list_posts                          Boolean?
+  include_rfc2369_headers                   Boolean?
+  advertised                                Boolean?
+  anonymous_list                            Boolean?
+  created_at                                DateTime?                @db.Timestamp(6)
+  next_request_id                           Int?
+  next_digest_number                        Int?
+  digest_last_sent_at                       DateTime?                @db.Timestamp(6)
+  volume                                    Int?
+  last_post_at                              DateTime?                @db.Timestamp(6)
+  accept_these_nonmembers                   Bytes?
+  admin_immed_notify                        Boolean?
+  admin_notify_mchanges                     Boolean?
+  administrivia                             Boolean?
+  archive_policy                            Int?
+  autoresponse_grace_period                 Unsupported("interval")?
+  autorespond_owner                         Int?
+  autoresponse_owner_text                   String?
+  autorespond_postings                      Int?
+  autoresponse_postings_text                String?
+  autorespond_requests                      Int?
+  autoresponse_request_text                 String?
+  filter_action                             Int?
+  filter_content                            Boolean?
+  collapse_alternatives                     Boolean?
+  convert_html_to_plaintext                 Boolean?
+  bounce_info_stale_after                   Unsupported("interval")?
+  bounce_matching_headers                   String?                  @db.VarChar
+  bounce_notify_owner_on_bounce_increment   Boolean?
+  bounce_notify_owner_on_disable            Boolean?
+  bounce_notify_owner_on_removal            Boolean?
+  bounce_score_threshold                    Int?
+  bounce_you_are_disabled_warnings          Int?
+  bounce_you_are_disabled_warnings_interval Unsupported("interval")?
+  forward_unrecognized_bounces_to           Int?
+  process_bounces                           Boolean?
+  dmarc_mitigate_action                     Int?
+  dmarc_mitigate_unconditionally            Boolean?
+  dmarc_addresses                           Bytes?
+  dmarc_moderation_notice                   String?                  @db.VarChar
+  dmarc_wrapped_message_text                String?                  @db.VarChar
+  default_member_action                     Int?
+  default_nonmember_action                  Int?
+  description                               String?                  @db.VarChar
+  digests_enabled                           Boolean?
+  digest_is_default                         Boolean?
+  digest_send_periodic                      Boolean?
+  digest_size_threshold                     Float?
+  digest_volume_frequency                   Int?
+  discard_these_nonmembers                  Bytes?
+  emergency                                 Boolean?
+  encode_ascii_prefixes                     Boolean?
+  first_strip_reply_to                      Boolean?
+  forward_auto_discards                     Boolean?
+  gateway_to_mail                           Boolean?
+  gateway_to_news                           Boolean?
+  hold_these_nonmembers                     Bytes?
+  info                                      String?
+  linked_newsgroup                          String?                  @db.VarChar
+  max_days_to_hold                          Int?
+  max_message_size                          Int?
+  max_num_recipients                        Int?
+  member_moderation_notice                  String?                  @db.VarChar
+  moderator_password                        Bytes?
+  newsgroup_moderation                      Int?
+  nntp_prefix_subject_too                   Boolean?
+  nonmember_rejection_notice                String?                  @db.VarChar
+  obscure_addresses                         Boolean?
+  owner_chain                               String?                  @db.VarChar
+  owner_pipeline                            String?                  @db.VarChar
+  personalize                               Int?
+  post_id                                   Int?
+  posting_chain                             String?                  @db.VarChar
+  posting_pipeline                          String?                  @db.VarChar
+  preferred_language                        String?                  @db.VarChar
+  display_name                              String?                  @db.VarChar
+  reject_these_nonmembers                   Bytes?
+  reply_goes_to_list                        Int?
+  reply_to_address                          String?                  @db.VarChar
+  require_explicit_destination              Boolean?
+  respond_to_post_requests                  Boolean?
+  member_roster_visibility                  Int?
+  scrub_nondigest                           Boolean?
+  send_goodbye_message                      Boolean?
+  send_welcome_message                      Boolean?
+  subject_prefix                            String?                  @db.VarChar
+  subscription_policy                       Int?
+  topics                                    Bytes?
+  topics_bodylines_limit                    Int?
+  topics_enabled                            Boolean?
+  unsubscription_policy                     Int?
+  usenet_watermark                          Int?
+  archive_rendering_mode                    Int?
+  request                                   request[]
+  acceptablealias                           acceptablealias[]
+  autoresponserecord                        autoresponserecord[]
+  contentfilter                             contentfilter[]
+  headermatch                               headermatch[]
+  listarchiver                              listarchiver[]
+  onelastdigest                             onelastdigest[]
+
+  @@index([list_name], map: "ix_mailinglist_list_name")
+  @@index([mail_host], map: "ix_mailinglist_mail_host")
+}
+
+model member {
+  id                   Int          @id @default(autoincrement())
+  member_id            String?      @map("_member_id") @db.Uuid
+  role                 Int?
+  list_id              String?      @db.VarChar
+  moderation_action    Int?
+  address_id           Int?
+  preferences_id       Int?
+  user_id              Int?
+  bounce_score         Int?
+  last_bounce_received DateTime?    @db.Timestamp(6)
+  last_warning_sent    DateTime?    @db.Timestamp(6)
+  total_warnings_sent  Int?
+  address              address?     @relation(fields: [address_id], references: [id], onDelete: NoAction, onUpdate: NoAction)
+  preferences          preferences? @relation(fields: [preferences_id], references: [id], onDelete: NoAction, onUpdate: NoAction)
+  user                 user?        @relation(fields: [user_id], references: [id], onDelete: NoAction, onUpdate: NoAction)
+
+  @@index([member_id], map: "ix_member__member_id")
+  @@index([address_id], map: "ix_member_address_id")
+  @@index([bounce_score], map: "ix_member_bounce_score")
+  @@index([last_warning_sent], map: "ix_member_last_warning_sent")
+  @@index([list_id], map: "ix_member_list_id")
+  @@index([preferences_id], map: "ix_member_preferences_id")
+  @@index([role], map: "ix_member_role")
+  @@index([total_warnings_sent], map: "ix_member_total_warnings_sent")
+  @@index([user_id], map: "ix_member_user_id")
+}
+
+model message {
+  id              Int     @id @default(autoincrement())
+  message_id      String? @db.VarChar
+  message_id_hash String? @db.VarChar
+  path            String? @db.VarChar
+}
+
+model onelastdigest {
+  id              Int          @id @default(autoincrement())
+  mailing_list_id Int?
+  address_id      Int?
+  delivery_mode   Int?
+  address         address?     @relation(fields: [address_id], references: [id], onDelete: NoAction, onUpdate: NoAction)
+  mailinglist     mailinglist? @relation(fields: [mailing_list_id], references: [id], onDelete: NoAction, onUpdate: NoAction)
+}
+
+model openid_openidnonce {
+  id           Int      @id @default(autoincrement())
+  server_url   String   @db.VarChar(255)
+  timestamp    Int
+  salt         String   @db.VarChar(255)
+  date_created DateTime @db.Timestamptz(6)
+}
+
+model openid_openidstore {
+  id         Int    @id @default(autoincrement())
+  server_url String @db.VarChar(255)
+  handle     String @db.VarChar(255)
+  secret     String
+  issued     Int
+  lifetime   Int
+  assoc_type String
+}
+
+model pended {
+  id              Int              @id @default(autoincrement())
+  token           String?          @db.VarChar
+  expiration_date DateTime?        @db.Timestamp(6)
+  pendedkeyvalue  pendedkeyvalue[]
+
+  @@index([expiration_date], map: "ix_pended_expiration_date")
+  @@index([token], map: "ix_pended_token")
+}
+
+model pendedkeyvalue {
+  id        Int     @id @default(autoincrement())
+  key       String? @db.VarChar
+  value     String? @db.VarChar
+  pended_id Int?
+  pended    pended? @relation(fields: [pended_id], references: [id], onDelete: NoAction, onUpdate: NoAction)
+
+  @@index([key], map: "ix_pendedkeyvalue_key")
+  @@index([pended_id], map: "ix_pendedkeyvalue_pended_id")
+  @@index([value], map: "ix_pendedkeyvalue_value")
+}
+
+model postorius_emailtemplate {
+  id          Int      @id @default(autoincrement())
+  name        String   @db.VarChar(100)
+  data        String
+  language    String   @db.VarChar(5)
+  created_at  DateTime @db.Timestamptz(6)
+  modified_at DateTime @db.Timestamptz(6)
+  context     String   @db.VarChar(50)
+  identifier  String   @db.VarChar(100)
+
+  @@unique([name, identifier, language], map: "postorius_emailtemplate_name_identifier_language_052d72ee_uniq")
+}
+
+model preferences {
+  id                   Int       @id @default(autoincrement())
+  acknowledge_posts    Boolean?
+  hide_address         Boolean?
+  preferred_language   String?   @db.VarChar
+  receive_list_copy    Boolean?
+  receive_own_postings Boolean?
+  delivery_mode        Int?
+  delivery_status      Int?
+  address              address[]
+  member               member[]
+  user                 user[]
+}
+
+/// This model has constraints using non-default deferring rules and requires additional setup for migrations. Visit https://pris.ly/d/constraint-deferring for more info.
+model socialaccount_socialaccount {
+  id                        Int                         @id @default(autoincrement())
+  provider                  String                      @db.VarChar(200)
+  uid                       String                      @db.VarChar(191)
+  last_login                DateTime                    @db.Timestamptz(6)
+  date_joined               DateTime                    @db.Timestamptz(6)
+  extra_data                Json
+  user_id                   Int
+  auth_user                 auth_user                   @relation(fields: [user_id], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "socialaccount_socialaccount_user_id_8146e70c_fk_auth_user_id")
+  socialaccount_socialtoken socialaccount_socialtoken[]
+
+  @@unique([provider, uid], map: "socialaccount_socialaccount_provider_uid_fc810c6e_uniq")
+  @@index([user_id], map: "socialaccount_socialaccount_user_id_8146e70c")
+}
+
+model socialaccount_socialapp {
+  id                            Int                             @id @default(autoincrement())
+  provider                      String                          @db.VarChar(30)
+  name                          String                          @db.VarChar(40)
+  client_id                     String                          @db.VarChar(191)
+  secret                        String                          @db.VarChar(191)
+  key                           String                          @db.VarChar(191)
+  provider_id                   String                          @db.VarChar(200)
+  settings                      Json
+  socialaccount_socialapp_sites socialaccount_socialapp_sites[]
+  socialaccount_socialtoken     socialaccount_socialtoken[]
+}
+
+/// This model has constraints using non-default deferring rules and requires additional setup for migrations. Visit https://pris.ly/d/constraint-deferring for more info.
+model socialaccount_socialapp_sites {
+  id                      Int                     @id @default(autoincrement())
+  socialapp_id            Int
+  site_id                 Int
+  django_site             django_site             @relation(fields: [site_id], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "socialaccount_social_site_id_2579dee5_fk_django_si")
+  socialaccount_socialapp socialaccount_socialapp @relation(fields: [socialapp_id], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "socialaccount_social_socialapp_id_97fb6e7d_fk_socialacc")
+
+  @@unique([socialapp_id, site_id], map: "socialaccount_socialapp__socialapp_id_site_id_71a9a768_uniq")
+  @@index([site_id], map: "socialaccount_socialapp_sites_site_id_2579dee5")
+  @@index([socialapp_id], map: "socialaccount_socialapp_sites_socialapp_id_97fb6e7d")
+}
+
+/// This model has constraints using non-default deferring rules and requires additional setup for migrations. Visit https://pris.ly/d/constraint-deferring for more info.
+model socialaccount_socialtoken {
+  id                          Int                         @id @default(autoincrement())
+  token                       String
+  token_secret                String
+  expires_at                  DateTime?                   @db.Timestamptz(6)
+  account_id                  Int
+  app_id                      Int?
+  socialaccount_socialaccount socialaccount_socialaccount @relation(fields: [account_id], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "socialaccount_social_account_id_951f210e_fk_socialacc")
+  socialaccount_socialapp     socialaccount_socialapp?    @relation(fields: [app_id], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "socialaccount_social_app_id_636a42d7_fk_socialacc")
+
+  @@unique([app_id, account_id], map: "socialaccount_socialtoken_app_id_account_id_fca4e0ac_uniq")
+  @@index([account_id], map: "socialaccount_socialtoken_account_id_951f210e")
+  @@index([app_id], map: "socialaccount_socialtoken_app_id_636a42d7")
+}
+
+model template {
+  id       Int     @id @default(autoincrement())
+  name     String? @db.VarChar
+  context  String? @db.VarChar
+  uri      String? @db.VarChar
+  username String? @db.VarChar
+  password String? @db.VarChar
+}
+
+model uid {
+  id  Int     @id @default(autoincrement())
+  uid String? @db.Uuid
+
+  @@index([uid], map: "ix_uid_uid")
+}
+
+model user {
+  id                                         Int            @id @default(autoincrement())
+  display_name                               String?        @db.VarChar
+  password                                   String?        @db.VarChar
+  user_id                                    String?        @map("_user_id") @db.Uuid
+  created_on                                 DateTime?      @map("_created_on") @db.Timestamp(6)
+  is_server_owner                            Boolean?
+  preferred_address_id                       Int?           @map("_preferred_address_id")
+  preferences_id                             Int?
+  address_address_user_idTouser              address[]      @relation("address_user_idTouser")
+  domain_owner                               domain_owner[]
+  member                                     member[]
+  address_user_preferred_address_idToaddress address?       @relation("user_preferred_address_idToaddress", fields: [preferred_address_id], references: [id], onUpdate: NoAction, map: "_preferred_address")
+  preferences                                preferences?   @relation(fields: [preferences_id], references: [id], onDelete: NoAction, onUpdate: NoAction)
+
+  @@index([user_id], map: "ix_user__user_id")
+  @@index([preferences_id], map: "ix_user_preferences_id")
+}
+
+model workflowstate {
+  token String  @id @db.VarChar
+  step  String? @db.VarChar
+  data  String? @db.VarChar
+}

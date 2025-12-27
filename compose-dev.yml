@@ -12,34 +12,35 @@ services:
       NODE_ENV: development
       DOMAIN: http://localhost:3000/
       POSTGRES_DB: listsv2_db
-      DATABASE_URL: postgresql://postgres:restpass@listsv2-db-dev:5432/listsv2_db
-    depends_on:
-      listsv2-db-dev: 
-        condition: service_healthy
+    # DATABASE_URL: postgresql://postgres:restpass@listsv2-db-dev:5432/listsv2_db
+    # depends_on:
+    #   listsv2-db-dev: 
+    #     condition: service_healthy
     ports:
       - 3000:3000
     networks:
       - internal
     command: sh -c "npm install --silent && npm run dev"
     #command: sh -c "npm install --silent && npx prisma migrate dev --name init && npx prisma generate && npm run dev "
+  
 
-  listsv2-db-dev:
-    image: postgres:16.11-alpine3.23
-    ports:
-      - 5432:5432
-    environment:
-      POSTGRES_PASSWORD: restpass
-      POSTGRES_DB: listsv2_db
-    networks:
-      - internal
-    volumes:
-      - ./postgres:/var/lib/postgresql/data
-    healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U postgres -d $$POSTGRES_DB"] 
-      interval: 10s      
-      timeout: 2s         
-      retries: 2          
-      start_period: 10s  
+  # listsv2-db-dev:
+  #   image: postgres:16.11-alpine3.23
+  #   ports:
+  #     - 5432:5432
+  #   environment:
+  #     POSTGRES_PASSWORD: restpass
+  #     POSTGRES_DB: listsv2_db
+  #   networks:
+  #     - internal
+  #   volumes:
+  #     - ./postgres:/var/lib/postgresql/data
+  #   healthcheck:
+  #     test: ["CMD-SHELL", "pg_isready -U postgres -d $$POSTGRES_DB"] 
+  #     interval: 10s      
+  #     timeout: 2s         
+  #     retries: 2          
+  #     start_period: 10s  
 
 networks:
   internal:
