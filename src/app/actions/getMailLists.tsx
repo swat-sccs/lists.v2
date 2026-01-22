@@ -107,6 +107,7 @@ export async function getUserLists() {
       .then((response) => {
         if (response.data) {
           counts.total = response.data.total_size;
+          if (!response.data.entries) return;
           for (const list of response.data.entries) {
             filtered_output.push(list);
             if (list.role === "owner") {
