@@ -12,6 +12,7 @@ import {
   DropdownMenu,
   DropdownItem,
 } from "@heroui/dropdown";
+import { useParams, usePathname } from "next/navigation";
 
 // Define the types for the component's props
 type HeaderProps = {
@@ -24,19 +25,24 @@ type HeaderProps = {
  */
 export const Header = ({ title }: HeaderProps) => {
   const { data: session, status } = useSession();
+  const pathname = usePathname();
+
   return (
-    <Card>
+    <Card className="dark:text-white text-black">
       <CardBody className="px-5">
         <div className="grid grid-cols-2">
           <div className="flex flex-col">
-            <Breadcrumbs
-              itemClasses={{
-                separator: "px-2",
-              }}
-              separator="/"
-            >
-              <BreadcrumbItem>Home</BreadcrumbItem>
-              <BreadcrumbItem>All Lists</BreadcrumbItem>
+            <Breadcrumbs itemClasses={{}} separator="/">
+              <BreadcrumbItem href="/" key={"home"}>
+                home
+              </BreadcrumbItem>
+              {pathname &&
+                pathname
+                  ?.split("/")
+                  .slice(1)
+                  .map((key) => (
+                    <BreadcrumbItem key={key}>{key}</BreadcrumbItem>
+                  ))}
             </Breadcrumbs>
             <h1 className="text-3xl font-bold mt-2">{title}</h1>
           </div>

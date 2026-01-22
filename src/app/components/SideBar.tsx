@@ -20,7 +20,7 @@ export const SideBar = () => {
   const positions = ["8rem", "12.5rem", "17rem"];
 
   return (
-    <Card className="min-h-full flex flex-col">
+    <Card className="min-h-full flex flex-col ">
       <CardBody className="px-5 flex flex-col justify-start items-center gap-10 ">
         <Card
           className="w-2 bg-orange-400 h-10 absolute left-0 transition-all duration-300 ease-in-out"
@@ -41,7 +41,7 @@ export const SideBar = () => {
             <ViewListIcon className="" fontSize="large" />
             <Link
               color="foreground"
-              href="#"
+              href="/"
               className="text-2xl font-bold"
               onPress={() => setActiveIndex(0)}
             >

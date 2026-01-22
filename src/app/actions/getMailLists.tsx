@@ -2,7 +2,6 @@ import axios from "axios";
 import { MailingList, MailmanMember } from "@/app/types/types";
 import { auth } from "@/app/lib/auth";
 
-
 export async function getMailListsByUser(role: string) {
   const session = await auth();
 
@@ -95,35 +94,39 @@ export async function getUserLists() {
   let data = { subscriber: session.user.email };
 
   let counts = { member: 0, owner: 0, moderator: 0, total: 0 };
-
-  await axios
-    .get(api_link, {
-      params: data,
-      timeout: 5000,
-      auth: {
-        username: process.env.MAILMAN_USER || "",
-        password: process.env.MAILMAN_PASS || "",
-      },
-    })
-    .then((response) => {
-      if (response.data) {
-        counts.total = response.data.total_size;
-        for (const list of response.data.entries) {
-          filtered_output.push(list);
-          if (list.role === "owner") {
-            counts.owner += 1;
-          } else if (list.role === "moderator") {
-            counts.moderator += 1;
-          } else if (list.role === "member") {
-            counts.member += 1;
+  try {
+    await axios
+      .get(api_link, {
+        params: data,
+        timeout: 5000,
+        auth: {
+          username: process.env.MAILMAN_USER || "",
+          password: process.env.MAILMAN_PASS || "",
+        },
+      })
+      .then((response) => {
+        if (response.data) {
+          counts.total = response.data.total_size;
+          for (const list of response.data.entries) {
+            filtered_output.push(list);
+            if (list.role === "owner") {
+              counts.owner += 1;
+            } else if (list.role === "moderator") {
+              counts.moderator += 1;
+            } else if (list.role === "member") {
+              counts.member += 1;
+            }
           }
         }
-      }
-    })
-    .catch((error) => {
-      console.error("getMailList ERROR:", error);
-      return [];
-    });
+      })
+      .catch((error) => {
+        console.error("getMailList ERROR:", error);
+        return { counts: 0, mailingLists: [] };
+      });
+  } catch (error) {
+    console.error("getMailList ERROR:", error);
+    return { counts: counts, mailingLists: [] };
+  }
 
   return { counts: counts, mailingLists: filtered_output };
 }

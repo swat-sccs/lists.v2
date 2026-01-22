@@ -7,6 +7,9 @@ import { Button } from "@heroui/button";
 import { ScrollShadow } from "@heroui/scroll-shadow";
 import { Subscribe, Unsubscribe } from "../actions/subscribe";
 import { useState } from "react";
+import { useSession } from "next-auth/react";
+import { useSearchParams, useRouter } from "next/navigation";
+
 // Define the types for the component's props
 type MailListProps = {
   mailingLists: MailingList[];
@@ -18,31 +21,34 @@ type MailListProps = {
  * @param {MailListProps} props - The props for the MailList.
  */
 export const MailList = ({ mailingLists, userData }: MailListProps) => {
-  const [loading, setLoading] = useState(false);
+  const [loadingListId, setLoadingListId] = useState<string | null>(null);
+  const { data: session, status } = useSession();
+  const searchParams = useSearchParams();
+  const router = useRouter();
 
   async function handleSubscribe(listId: string): Promise<void> {
-    setLoading(true);
+    setLoadingListId(listId);
     const result = await Subscribe(listId);
 
     if (result.status == "success") {
-      setLoading(false);
+      setLoadingListId(null);
       // Optionally, refresh the page or update state to reflect the new subscription
-      window.location.reload();
+      router.refresh();
     } else {
-      setLoading(false);
+      setLoadingListId(null);
       alert("Failed to subscribe to the mailing list. Please try again.");
     }
   }
   async function handleUnsubscribe(listId: string): Promise<void> {
-    setLoading(true);
+    setLoadingListId(listId);
     const result = await Unsubscribe(listId);
 
     if (result.status == "success") {
-      setLoading(false);
+      setLoadingListId(null);
       // Optionally, refresh the page or update state to reflect the new subscription
       window.location.reload();
     } else {
-      setLoading(false);
+      setLoadingListId(null);
       alert("Failed to unsubscribe from the mailing list. Please try again.");
     }
   }
@@ -56,7 +62,11 @@ export const MailList = ({ mailingLists, userData }: MailListProps) => {
                 key={list.list_id}
                 className="p-4 hover:scale-102 transition-all duration-150 min-h-40"
               >
-                <CardBody className="flex flex-row items-center gap-10 max-h-32 overflow-y-clip ">
+                <CardBody
+                  key={list.list_id}
+                  onClick={() => router.push(`/list/${list.list_id}`)}
+                  className="flex flex-row items-center gap-10 max-h-32 overflow-y-clip"
+                >
                   <div>
                     <Image
                       isBlurred
@@ -69,7 +79,7 @@ export const MailList = ({ mailingLists, userData }: MailListProps) => {
                   <div className="grid grid-rows-2 w-full ">
                     <div className="row-span-1 flex flex-row justify-between items-center ">
                       <div className="flex flex-row gap-4 items-center">
-                        <h3 className="text-lg font-semibold">
+                        <h3 className="text-lg font-semibold text-white">
                           {list.display_name}
                         </h3>
 
@@ -84,24 +94,33 @@ export const MailList = ({ mailingLists, userData }: MailListProps) => {
                           <p className="text-sm">Recieve Emails</p>
                         </Switch>
                         */}
-                        {}
-                        {userData.listsIDs.includes(list.list_id) ? (
-                          <Button
-                            color="secondary"
-                            isLoading={loading}
-                            onPress={() => handleUnsubscribe(list.list_id)}
-                          >
-                            Unsubscribe
-                          </Button>
-                        ) : (
-                          <Button
-                            color="primary"
-                            isLoading={loading}
-                            onPress={() => handleSubscribe(list.list_id)}
-                          >
-                            Subscribe
-                          </Button>
-                        )}
+                        {status === "authenticated" ? (
+                          searchParams.get("filter") != "owner" ? (
+                            userData.listsIDs.includes(list.list_id) ? (
+                              <Button
+                                color="secondary"
+                                isLoading={loadingListId === list.list_id}
+                                onPress={(e) => {
+                                  handleUnsubscribe(list.list_id);
+                                }}
+                              >
+                                Unsubscribe
+                              </Button>
+                            ) : (
+                              <Button
+                                color="primary"
+                                isLoading={loadingListId === list.list_id}
+                                onPress={() => handleSubscribe(list.list_id)}
+                              >
+                                Subscribe
+                              </Button>
+                            )
+                          ) : (
+                            <>
+                              <Button>Manage</Button>
+                            </>
+                          )
+                        ) : null}
                       </div>
                     </div>
 

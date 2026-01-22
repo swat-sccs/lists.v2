@@ -17,15 +17,21 @@ export async function getUserListIds(
   role?: number
 ): Promise<string[]> {
   const session = await auth();
+  if (!session) return [];
   const userEmail = session?.user?.email;
-  console.log(role);
-  const memberships = await prisma.member.findMany({
-    where: {
-      address: { email: email ? email : userEmail },
-      ...(role !== undefined ? { role } : { role: ROLE_MEMBER }),
-    },
-    select: { list_id: true },
-  });
+  let memberships;
+  try {
+    memberships = await prisma.member.findMany({
+      where: {
+        address: { email: email ? email : userEmail },
+        ...(role !== undefined ? { role } : { role: ROLE_MEMBER }),
+      },
+      select: { list_id: true },
+    });
+  } catch (error) {
+    console.error("getUserListIds ERROR:", error);
+    return [];
+  }
 
   return memberships
     .map((m) => m.list_id)
@@ -67,6 +73,7 @@ export async function searchMailLists(
   mailingLists: MailingList[];
 }> {
   const session = await auth();
+
   const userEmail = session?.user?.email;
 
   // Determine role filter based on filter prop
@@ -85,31 +92,36 @@ export async function searchMailLists(
       }
     }
   }
-
-  const totalCount = await prisma.mailinglist.count({
-    where: {
-      advertised: true,
-    },
-  });
+  let totalCount;
+  try {
+    totalCount = await prisma.mailinglist.count({
+      where: {
+        advertised: true,
+      },
+    });
+  } catch (error) {
+    totalCount = 0;
+  }
 
   // No search term - use raw SQL to include member_count
-  if (!term || term.trim() === "") {
-    const listIdFilter = userListIds
-      ? Prisma.sql`AND list_id = ANY(${userListIds}::text[])`
-      : Prisma.empty;
+  try {
+    if (!term || term.trim() === "") {
+      const listIdFilter = userListIds
+        ? Prisma.sql`AND list_id = ANY(${userListIds}::text[])`
+        : Prisma.empty;
 
-    const results = await prisma.$queryRaw<
-      Array<{
-        list_name: string | null;
-        mail_host: string | null;
-        list_id: string | null;
-        display_name: string | null;
-        description: string | null;
-        advertised: boolean | null;
-        volume: number | null;
-        member_count: bigint;
-      }>
-    >`
+      const results = await prisma.$queryRaw<
+        Array<{
+          list_name: string | null;
+          mail_host: string | null;
+          list_id: string | null;
+          display_name: string | null;
+          description: string | null;
+          advertised: boolean | null;
+          volume: number | null;
+          member_count: bigint;
+        }>
+      >`
       SELECT 
         list_name, mail_host, list_id, display_name, description, advertised, volume,
         (SELECT COUNT(*) FROM member WHERE member.list_id = mailinglist.list_id) as member_count
@@ -120,11 +132,15 @@ export async function searchMailLists(
       LIMIT ${ITEMS_PER_PAGE}
     `;
 
-    return {
-      totalSize: totalCount,
-      totalPages: Math.ceil(totalCount / ITEMS_PER_PAGE),
-      mailingLists: results.map(mapToMailingList),
-    };
+      return {
+        totalSize: totalCount,
+        totalPages: Math.ceil(totalCount / ITEMS_PER_PAGE),
+        mailingLists: results.map(mapToMailingList),
+      };
+    }
+  } catch (error) {
+    console.error("searchMailLists ERROR:", error);
+    return { totalSize: 0, totalPages: 0, mailingLists: [] };
   }
 
   // Format search term for PostgreSQL full-text search
@@ -145,8 +161,10 @@ export async function searchMailLists(
     : Prisma.empty;
 
   // Run count and search queries in parallel
-  const [countResult, results] = await Promise.all([
-    prisma.$queryRaw<Array<{ count: bigint }>>`
+  let countResult, results;
+  try {
+    [countResult, results] = await Promise.all([
+      prisma.$queryRaw<Array<{ count: bigint }>>`
       SELECT COUNT(*) as count
       FROM mailinglist
       WHERE advertised = true
@@ -154,18 +172,18 @@ export async function searchMailLists(
         AND to_tsvector('english', COALESCE(list_name, '') || ' ' || COALESCE(display_name, '') || ' ' || COALESCE(description, ''))
             @@ to_tsquery('english', ${formattedTerm})
     `,
-    prisma.$queryRaw<
-      Array<{
-        list_name: string | null;
-        mail_host: string | null;
-        list_id: string | null;
-        display_name: string | null;
-        description: string | null;
-        advertised: boolean | null;
-        volume: number | null;
-        member_count: bigint;
-      }>
-    >`
+      prisma.$queryRaw<
+        Array<{
+          list_name: string | null;
+          mail_host: string | null;
+          list_id: string | null;
+          display_name: string | null;
+          description: string | null;
+          advertised: boolean | null;
+          volume: number | null;
+          member_count: bigint;
+        }>
+      >`
       SELECT 
         list_name, mail_host, list_id, display_name, description, advertised, volume,
         (SELECT COUNT(*) FROM member WHERE member.list_id = mailinglist.list_id) as member_count
@@ -180,7 +198,11 @@ export async function searchMailLists(
       ) DESC
       LIMIT ${ITEMS_PER_PAGE}
     `,
-  ]);
+    ]);
+  } catch (error) {
+    console.error("searchMailLists ERROR:", error);
+    return { totalSize: 0, totalPages: 0, mailingLists: [] };
+  }
   return {
     totalSize: totalCount,
     totalPages: Math.ceil(totalCount / ITEMS_PER_PAGE),

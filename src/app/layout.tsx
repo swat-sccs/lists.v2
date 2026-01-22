@@ -36,17 +36,17 @@ export default async function RootLayout({
             themeProps={{ attribute: "class", defaultTheme: "system" }}
           >
             <div className="flex min-h-screen bg-zinc-50 font-sans dark:bg-black">
-              <main className="grid grid-cols-5 grid-rows-1 w-full flex-col pl-5 bg-white dark:bg-black min-h-screen">
+              <main className="grid grid-cols-5 md:grid-cols-5 lg:grid-cols-6 grid-rows-1 w-full flex-col pl-5 bg-white dark:bg-black min-h-screen">
                 <div className="col-span-1 py-5">
                   <SideBar />
                 </div>
 
-                <div className="col-span-4 h-[60vh]">
-                  <div className=" p-5 ">
+                <div className="col-span-4 lg:col-span-5 flex flex-col py-5 gap-4">
+                  <div className="px-5">
                     <Header title="All Lists" />
                   </div>
 
-                  {children}
+                  <div className="h-full">{children}</div>
                 </div>
               </main>
             </div>
