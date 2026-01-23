@@ -56,9 +56,8 @@ export default async function Home({
   const totalPages = mailingLists.totalPages || 0;
 
   return (
-    <div className="">
-      <Search userData={userData} totalPageCount={totalLists} />
-
+    <div className="flex flex-col h-full">
+      <Search userData={userData} totalPageCount={totalLists}/>
       <Suspense
         key={`${currentPage}-${filter}-${search}`}
         fallback={
@@ -70,12 +69,10 @@ export default async function Home({
           </div>
         }
       >
-        <div className="h-[60vh] ">
-          <MailList
-            mailingLists={mailingLists.mailingLists}
-            userData={userData}
-          />
-        </div>
+        <MailList
+          mailingLists={mailingLists.mailingLists}
+          userData={userData}
+        />
       </Suspense>
       <MailListPagination currentPage={currentPage} totalPages={totalPages} />
     </div>

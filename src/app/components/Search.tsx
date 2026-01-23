@@ -1,19 +1,19 @@
 // /components/Search.tsx
 "use client";
-import { Card, CardBody } from "@heroui/card";
-import { Avatar } from "@heroui/avatar";
-import { Breadcrumbs, BreadcrumbItem } from "@heroui/breadcrumbs";
+import {Card, CardBody} from "@heroui/card";
+import {Avatar} from "@heroui/avatar";
+import {Breadcrumbs, BreadcrumbItem} from "@heroui/breadcrumbs";
 import SearchIcon from "@mui/icons-material/Search";
-import { Input } from "@heroui/input";
-import { Button, ButtonGroup } from "@heroui/button";
-import { Tabs, Tab } from "@heroui/tabs";
-import { MailmanMember } from "../types/types";
-import { useSession } from "next-auth/react";
-import { useEffect, useState } from "react";
-import { useRouter, useSearchParams } from "next/navigation";
+import {Input} from "@heroui/input";
+import {Button, ButtonGroup} from "@heroui/button";
+import {Tabs, Tab} from "@heroui/tabs";
+import {MailmanMember} from "../types/types";
+import {useSession} from "next-auth/react";
+import {useEffect, useState} from "react";
+import {useRouter, useSearchParams} from "next/navigation";
 
 type userData = {
-  counts: { owner: number; moderator: number; member: number; total: number };
+  counts: {owner: number; moderator: number; member: number; total: number};
   mailingLists: MailmanMember[];
 };
 
@@ -27,8 +27,8 @@ type SearchProps = {
  * A reusable MailList component.
  * @param {SearchProps} props - The props for the Search component.
  */
-export const Search = ({ userData, totalPageCount }: SearchProps) => {
-  const { data: session, status } = useSession();
+export const Search = ({userData, totalPageCount}: SearchProps) => {
+  const {data: session, status} = useSession();
   const [selected, setSelected] = useState("all");
   const [searchValue, setSearchValue] = useState("");
   const searchParams = useSearchParams();
@@ -58,8 +58,8 @@ export const Search = ({ userData, totalPageCount }: SearchProps) => {
   }, [searchParams]);
 
   return (
-    <Card className="m-5">
-      <CardBody className="flex flex-row justify-between items-center gap-5">
+    <Card className="mb-5 py-3">
+      <CardBody className="flex flex-row justify-between items-center overflow-hidden">
         <Tabs
           aria-label="View Options"
           color="primary"
@@ -80,7 +80,6 @@ export const Search = ({ userData, totalPageCount }: SearchProps) => {
         <Input
           className="w-96"
           variant="flat"
-          label="Search"
           type="text"
           placeholder="Type to search..."
           startContent={<SearchIcon />}

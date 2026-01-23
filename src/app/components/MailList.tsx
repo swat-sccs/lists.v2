@@ -1,14 +1,14 @@
 // /components/MailList.tsx
 "use client";
-import { Card, CardBody } from "@heroui/card";
-import { Image } from "@heroui/image";
-import { MailingList, MailmanMember, UserData } from "../types/types";
-import { Button } from "@heroui/button";
-import { ScrollShadow } from "@heroui/scroll-shadow";
-import { Subscribe, Unsubscribe } from "../actions/subscribe";
-import { useState } from "react";
-import { useSession } from "next-auth/react";
-import { useSearchParams, useRouter } from "next/navigation";
+import {Card, CardBody} from "@heroui/card";
+import {Image} from "@heroui/image";
+import {MailingList, MailmanMember, UserData} from "../types/types";
+import {Button} from "@heroui/button";
+import {Subscribe, Unsubscribe} from "../actions/subscribe";
+import {useState} from "react";
+import {useSession} from "next-auth/react";
+import {useSearchParams, useRouter} from "next/navigation";
+import {ScrollShadow} from "@heroui/react";
 
 // Define the types for the component's props
 type MailListProps = {
@@ -20,9 +20,9 @@ type MailListProps = {
  * A reusable MailList component.
  * @param {MailListProps} props - The props for the MailList.
  */
-export const MailList = ({ mailingLists, userData }: MailListProps) => {
+export const MailList = ({mailingLists, userData}: MailListProps) => {
   const [loadingListId, setLoadingListId] = useState<string | null>(null);
-  const { data: session, status } = useSession();
+  const {data: session, status} = useSession();
   const searchParams = useSearchParams();
   const router = useRouter();
 
@@ -53,14 +53,16 @@ export const MailList = ({ mailingLists, userData }: MailListProps) => {
     }
   }
   return (
-    <div className="flex flex-col gap-4 h-full">
-      <ScrollShadow className="w-full h-full">
-        <div className="px-5 overflow-y-scroll flex flex-col gap-4">
+    // this outer div thing is ugly; ScrollShadow needs to be in a client side component for some reason
+    // ScrollShadow should really be in page.tsx if we can make it work...
+    <div className="h-full w-full">
+      <ScrollShadow className="h-full w-full">
+        <div className="flex flex-col gap-4 h-full w-full overflow-y-auto overflow-x-hidden">
           {mailingLists.length > 0 ? (
             mailingLists.map((list) => (
               <Card
                 key={list.list_id}
-                className="p-4 hover:scale-102 transition-all duration-150 min-h-40"
+                className="p-4 min-h-40 hover:bg-gray-900 cursor-pointer"
               >
                 <CardBody
                   key={list.list_id}

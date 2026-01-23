@@ -41,11 +41,8 @@ export default async function RootLayout({
                   <SideBar />
                 </div>
 
-                <div className="col-span-4 lg:col-span-5 flex flex-col py-5 gap-4">
-                  <div className="px-5">
-                    <Header title="All Lists" />
-                  </div>
-
+                <div className="col-span-4 lg:col-span-5 flex flex-col p-5 gap-5">
+                  <Header title="All Lists" />
                   <div className="h-full">{children}</div>
                 </div>
               </main>
