@@ -2,9 +2,8 @@ import type { Metadata } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
 import "./globals.css";
 import { Providers } from "@/app/providers/providers";
-import Header from "./components/Header";
 import SideBar from "./components/SideBar";
-import { NextAuthProvider } from "@/app/providers/NextAuthProvider";
+import Header from "./components/Header";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -28,28 +27,31 @@ export default async function RootLayout({
 }>) {
   return (
     <html lang="en" suppressHydrationWarning>
-      <NextAuthProvider>
-        <body
-          className={`${geistSans.variable} ${geistMono.variable} antialiased`}
+      <body
+        className={`${geistSans.variable} ${geistMono.variable} antialiased`}
+      >
+        <Providers
+          themeProps={{
+            attribute: "class",
+            defaultTheme: "system",
+            enableSystem: true,
+          }}
         >
-          <Providers
-            themeProps={{ attribute: "class", defaultTheme: "system" }}
-          >
-            <div className="flex min-h-screen bg-zinc-50 font-sans dark:bg-black">
-              <main className="grid grid-cols-5 md:grid-cols-5 lg:grid-cols-6 grid-rows-1 w-full flex-col pl-5 bg-white dark:bg-black min-h-screen">
-                <div className="col-span-1 py-5">
-                  <SideBar />
-                </div>
+          <div className="flex min-h-screen bg-zinc-50 font-sans dark:bg-black">
+            <main className="grid grid-cols-5 md:grid-cols-5 lg:grid-cols-6 grid-rows-1 w-full flex-col pl-5 bg-white dark:bg-black min-h-screen">
+              <div className="col-span-1 py-5">
+                <SideBar />
+              </div>
 
-                <div className="col-span-4 lg:col-span-5 flex flex-col p-5 gap-5">
-                  <Header title="All Lists" />
-                  <div className="h-full">{children}</div>
-                </div>
-              </main>
-            </div>
-          </Providers>
-        </body>
-      </NextAuthProvider>
+              <div className="col-span-4 lg:col-span-5 flex flex-col p-5 gap-5">
+                <Header />
+
+                <div className="h-full">{children}</div>
+              </div>
+            </main>
+          </div>
+        </Providers>
+      </body>
     </html>
   );
 }

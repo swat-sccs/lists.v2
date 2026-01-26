@@ -3,19 +3,30 @@
 import { Card, CardBody, CardHeader, CardFooter } from "@heroui/card";
 import type { mailinglist } from "@/generated/prisma/client";
 import { Divider } from "@heroui/divider";
+import { useEffect, useState } from "react";
+
 export default function ListInfo({
   mailingListInfo,
 }: {
   mailingListInfo: ({ memberCount: number } & mailinglist) | null;
 }) {
-  console.log(mailingListInfo);
+  const [createdAt, setCreatedAt] = useState<string | null>(null);
+  const [lastPostAt, setLastPostAt] = useState<string | null>(null);
+
+  // Format dates on client side only to avoid hydration mismatch
+  useEffect(() => {
+    if (mailingListInfo?.created_at) {
+      setCreatedAt(new Date(mailingListInfo.created_at).toLocaleString());
+    }
+    if (mailingListInfo?.last_post_at) {
+      setLastPostAt(new Date(mailingListInfo.last_post_at).toLocaleString());
+    }
+  }, [mailingListInfo?.created_at, mailingListInfo?.last_post_at]);
+
   return (
     <Card className="p-4 h-full text-black dark:text-white">
       <CardHeader className="text-2xl flex flex-row justify-between ">
         <div className="flex flex-col gap-2">
-          <h1 className="text-2xl text-orange-600">
-            {mailingListInfo?.list_name}
-          </h1>
           <h3 className="text-sm">
             Owner Contact: {mailingListInfo?.list_name}-owner@
             {mailingListInfo?.mail_host}
@@ -35,15 +46,9 @@ export default function ListInfo({
 
         <div className="flex flex-col gap-2">
           <h1 className="text-2xl">List Metrics</h1>
-          <p>
-            Created:{" "}
-            {new Date(mailingListInfo?.created_at ?? "").toLocaleString()}
-          </p>
+          <p>Created: {createdAt ?? ""}</p>
           {mailingListInfo?.last_post_at ? (
-            <p>
-              Last Post:{" "}
-              {new Date(mailingListInfo?.last_post_at ?? "").toLocaleString()}
-            </p>
+            <p>Last Post: {lastPostAt ?? ""}</p>
           ) : (
             <p>Last Post: None</p>
           )}

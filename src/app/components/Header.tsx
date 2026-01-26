@@ -1,38 +1,59 @@
 // /components/Header.tsx
 "use client";
-import {Card, CardBody} from "@heroui/card";
-import {Avatar} from "@heroui/avatar";
-import {Breadcrumbs, BreadcrumbItem} from "@heroui/breadcrumbs";
-import {Button} from "@heroui/button";
+import { Card, CardBody } from "@heroui/card";
+import { Avatar } from "@heroui/avatar";
+import { Breadcrumbs, BreadcrumbItem } from "@heroui/breadcrumbs";
+import { Button } from "@heroui/button";
 import InputIcon from "@mui/icons-material/Input";
-import {signIn, signOut, useSession} from "next-auth/react";
+import { signIn, signOut, useSession } from "next-auth/react";
+import { useTheme } from "next-themes";
+
 import {
   Dropdown,
   DropdownTrigger,
   DropdownMenu,
   DropdownItem,
 } from "@heroui/dropdown";
-import {useParams, usePathname} from "next/navigation";
-
-// Define the types for the component's props
-type HeaderProps = {
-  title: string;
-};
+import { useParams, usePathname } from "next/navigation";
+import { getMailList } from "../actions/getMailList";
+import { useEffect, useState } from "react";
 
 /**
- * A reusable Header component.
- * @param {HeaderProps} props - The props for the Header.
+ * A reusable Header component that displays the current list name
+ * when on a /list/[listName] page, otherwise shows "All Lists".
  */
-export const Header = ({title}: HeaderProps) => {
-  const {data: session, status} = useSession();
-  const pathname = usePathname();
+// Determine the title based on the current route
+const getTitle = async (pathname: string, params: any) => {
+  if (pathname?.startsWith("/list/") && params?.listName) {
+    // Decode the list name in case it has URL encoding
+    const listData = await getMailList(
+      decodeURIComponent(params.listName as string),
+    );
+    return listData ? listData.display_name : "Mailing List";
+  }
+  return "All Lists";
+};
 
+export const Header = () => {
+  const { data: session, status } = useSession();
+  const pathname = usePathname();
+  const params = useParams();
+  const [title, setTitle] = useState("");
+
+  useEffect(() => {
+    getTitle(pathname, params).then((res) => {
+      setTitle(res as string);
+    });
+  }, [pathname, params]);
   return (
-    <Card className="dark:text-white text-black">
+    <Card className="">
       <CardBody className="px-5 pt-2 pb-5 overflow-hidden">
         <div className="grid grid-cols-2">
           <div className="flex flex-col">
-            <Breadcrumbs itemClasses={{}} separator="/">
+            <Breadcrumbs
+              itemClasses={{ item: "text-inherit", separator: "text-inherit" }}
+              separator="/"
+            >
               <BreadcrumbItem href="/" key={"home"}>
                 home
               </BreadcrumbItem>
@@ -52,7 +73,7 @@ export const Header = ({title}: HeaderProps) => {
               <div className="flex flex-row gap-3 items-center">
                 <div className="flex flex-col items-end">
                   <h3 className="text-md semibold">{session?.user.name}</h3>
-                  <h3 className="text-xs text-gray-300">
+                  <h3 className="text-xs ">
                     {session.user.role?.toLowerCase() == "admin" ? "Admin" : ""}
                   </h3>
                 </div>

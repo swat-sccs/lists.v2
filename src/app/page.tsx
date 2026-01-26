@@ -57,7 +57,7 @@ export default async function Home({
 
   return (
     <div className="flex flex-col h-full">
-      <Search userData={userData} totalPageCount={totalLists}/>
+      <Search userData={userData} totalPageCount={totalLists} />
       <Suspense
         key={`${currentPage}-${filter}-${search}`}
         fallback={
