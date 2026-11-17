@@ -30,9 +30,9 @@ export const MailList = ({ mailingLists, userData }: MailListProps) => {
     setLoadingListId(listId);
     const result = await Subscribe(listId);
 
-    if (result.status == "success") {
+    if (result.status === "success" || result.status === "pending") {
       setLoadingListId(null);
-      // Optionally, refresh the page or update state to reflect the new subscription
+      // A pending Mailman confirmation is already an accepted subscription request.
       router.refresh();
     } else {
       setLoadingListId(null);

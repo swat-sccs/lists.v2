@@ -24,7 +24,7 @@ import { useEffect, useState } from "react";
  */
 // Determine the title based on the current route
 const getTitle = async (pathname: string, params: any) => {
-  if (pathname?.startsWith("/list/") && params?.listName) {
+  if (pathname?.startsWith("/") && params?.listName) {
     // Decode the list name in case it has URL encoding
     const listData = await getMailList(
       decodeURIComponent(params.listName as string),

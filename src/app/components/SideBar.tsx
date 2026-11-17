@@ -3,18 +3,13 @@
 import { Card, CardBody } from "@heroui/card";
 import { Image } from "@heroui/image";
 import { Link } from "@heroui/link";
-import ViewListIcon from "@mui/icons-material/ViewList";
 import LightModeIcon from "@mui/icons-material/LightMode";
 import DarkModeIcon from "@mui/icons-material/DarkMode";
-import GetAppIcon from "@mui/icons-material/GetApp";
-import AdminPanelSettingsIcon from "@mui/icons-material/AdminPanelSettings";
 import SortIcon from "@mui/icons-material/Sort";
 import LocalOfferIcon from "@mui/icons-material/LocalOffer";
 import FilterListIcon from "@mui/icons-material/FilterList";
 import { useEffect, useState } from "react";
 import { Button } from "@heroui/button";
-import LogoutIcon from "@mui/icons-material/Logout";
-import { signOut } from "next-auth/react";
 import { useTheme } from "next-themes";
 import { Switch, Checkbox, CheckboxGroup } from "@heroui/react";
 import { Divider } from "@heroui/divider";
@@ -46,7 +41,7 @@ export const SideBar = () => {
     <Card className="min-h-full flex flex-col ">
       <CardBody className="px-5 flex flex-col justify-start items-center gap-6 ">
         <Link href="/" className="text-decoration-none">
-          <div className="flex flex-row ">
+          <div className="flex flex-col gap-1 items-center">
             <Image
               width={80}
               alt="Lists Logo, an envelope with speed lines to the left of it."
@@ -127,6 +122,7 @@ export const SideBar = () => {
             <FilterListIcon fontSize="small" />
             <span>Membership Type</span>
           </div>
+
           <CheckboxGroup
             value={membershipFilters}
             onValueChange={setMembershipFilters}
